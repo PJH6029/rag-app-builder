@@ -1,11 +1,12 @@
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, FewShotPromptTemplate, PromptTemplate
+from langchain_core.runnables import RunnableLambda
 
 translation_prompt_template = """
-You are an assistant for Korean-English translation tasks.
+You are an assistant for {lang}-English translation tasks.
 
 I will give you the sentence.
 If the sentence is already written in English, just copy the sentence.
-If not, please translate the sentence from Korean to English.
+If not, please translate the sentence from {lang} to English.
 
 You should say only the translation of the sentence, and do not say any additional information.
 
@@ -15,7 +16,7 @@ You should say only the translation of the sentence, and do not say any addition
 
 Translation:
 """
-translation_prompt = ChatPromptTemplate.from_template(translation_prompt_template)
+translation_prompt = ChatPromptTemplate.from_template(translation_prompt_template).partial(lang="Korean")
 
 rewrite_prompt_template = """
 You are an assistant for question-revision tasks.
@@ -81,11 +82,15 @@ generation_with_hierarchy_prompt_template = """
 You are an assistant for question-answering tasks.
 Use the following pieces of retrieved context to answer the question considering the chat history.
 
-I have provided you with the base context and additional context.
+I will provide you with the base context and additional context.
 Base context is the main context that you should consider first.
 It is the most base information that contains the answer.
 Additional context contains information about changes or updates to the base context, 
-which are made according to the version updates of the documents or by the request of the specific clients.
+which are made according to the version updates of the documents.
+
+Context can have specific features that are related to the question.
+You should consider the context features to answer the question.
+If context features are not given, you can ignore them.
 
 You should think step by step.
 You should first find the answer from the base context,
@@ -96,130 +101,23 @@ If you don't know the answer, just say that you don't know.
 
 You can answer in descriptive form or paraphrased form if you want, and keep the answer concise.
 
-You should answer with the format of the example answer below.
+You should answer with the reference to the documents.
 When you reference the documents, you should provide the exact title of the document.
 Feel free to use markdown to format your answer.
 
---------------------------------------------------
-**** Example 1 ****
-<chat-history>
-Human: Can you describe the features of UTIL-1?
-</chat-history>
+You should answer in {lang}.
 
-<context>
-    <base-context>
-    --- Document: Datacenter NVMe SSD Specification v2.0r21.pdf ---
-    Average Score: 0.99
-    DOC META:
-    {{'doc_id': 's3://llm-project-demo-bucket/frequently_access_documents/OCP/2.0/Datacenter+NVMe+SSD+Specification+v2.0r21.pdf', 'doc_name': 'Datacenter NVMe SSD Specification v2.0r21.pdf', 'category': 'base', 'version': 'v2.0r21', 'uri': 'https://llm-project-demo-bucket.s3.ap-northeast-1.amazonaws.com/frequently_access_documents/OCP/2.0/Datacenter+NVMe+SSD+Specification+v2.0r21.pdf'}}
-    
-    --- Chunk: dbc8ea71-dd6e-45df-a78c-0bec284d170c-9869493d-2d77-484c-82c3-c9b4befcef55 ---
-    Score: 0.99
-    TEXT:
-    16.1 NVMe CLI Management Utility
-    The NVMeCLI utility (https://github.com/linux-nvme/nvme-cli) shall be used as one of the management utilities for NVMe devices.
-    Requirement ID: UTIL-1
-    Description: The SSD supplier must test their SSDs with this utility and ensure compatibility. The following is the minimum list of commands that need to be tested with NVMeCLI:
-    - Format.
-    - Secure erase.
-    - FW update.
-    - Controller reset to load FW.
-    - Health status.
-    - Log page reads including vendor log pages.
-    - SMART status.
-    CHUNK META:
-    {{'chunk_id': 'dbc8ea71-dd6e-45df-a78c-0bec284d170c-9869493d-2d77-484c-82c3-c9b4befcef55', 'page': 110, 'score': 'HIGH'}}
-    
-
-    --- Document: datacenter-nvme-ssd-specification-v2-5-pdf.pdf ---
-    Average Score: 0.97
-    DOC META:
-    {{'doc_id': 's3://llm-project-demo-bucket/frequently_access_documents/OCP/2.5/datacenter-nvme-ssd-specification-v2-5-pdf.pdf', 'doc_name': 'datacenter-nvme-ssd-specification-v2-5-pdf.pdf', 'category': 'base', 'version': 'v2.5', 'uri': 'https://llm-project-demo-bucket.s3.ap-northeast-1.amazonaws.com/frequently_access_documents/OCP/2.5/datacenter-nvme-ssd-specification-v2-5-pdf.pdf'}}
-    
-    --- Chunk: 7b1b1b7b-7b7b-4b7b-8b7b-7b7b7b7b7b7b-7b7b7b7b-7b7b-4b7b-8b7b-7b7b7b7b7b7b ---
-    Score: 0.97
-    TEXT:
-    18.1 NVMe CLI Management Utility
-    The NVMeCLI utility (https://github.com/linux-nvme/nvme-cli/tree/master/plugins/ocp) shall be used as one of the management utilities for NVMe devices.
-    Requirement ID: UTIL-1
-    Description: The SSD supplier must test their SSDs with this utility and ensure compatibility. The following is the minimum list of commands that need to be tested with NVMeCLI:
-    - Format.
-    - Secure erase.
-    - FW update.
-    - Controller reset to load FW.
-    - Health status.
-    - Log page reads including vendor log pages.
-    - SMART status.
-    CHUNK META:
-    {{'chunk_id': '7b1b1b7b-7b7b-4b7b-8b7b-7b7b7b7b7b7b-7b7b7b7b-7b7b-4b7b-8b7b-7b7b7b7b7b7b', 'page': 170, 'score': 'HIGH'}}
-
-    </base-context>
-    <additional-context>
-    --- Document: Datacenter_NVMe_SSD_Specification_v2.5_Addendum_v0.20.pdf ---
-    Based on: s3://llm-project-demo-bucket/frequently_access_documents/OCP/2.5/datacenter-nvme-ssd-specification-v2-5-pdf.pdf
-    Average Score: 0.89
-    DOC META:
-    {{'doc_id': 's3://llm-project-demo-bucket/frequently_access_documents/OCP/2.5/Datacenter_NVMe_SSD_Specification_v2.5_Addendum_v0.20.pdf', 'doc_name': 'Datacenter_NVMe_SSD_Specification_v2.5_Addendum_v0.20.pdf', 'category': 'additional', 'version': 'v2.5-addendum-v0.20', 'uri': 'https://llm-project-demo-bucket.s3.ap-northeast-1.amazonaws.com/frequently_access_documents/OCP/2.5/Datacenter_NVMe_SSD_Specification_v2.5_Addendum_v0.20.pdf', 'base_doc_id': 's3://llm-project-demo-bucket/frequently_access_documents/OCP/2.5/datacenter-nvme-ssd-specification-v2-5-pdf.pdf'}}
-    
-    --- Chunk: 7b1b1b7b-7b7b-4b7b-8b7b-7b7b7b7b7b7b-7b7b7b7b-7b7b-4b7b-8b7b-7b7b7b7b7b7b ---
-    Score: 0.89
-    TEXT:
-    2. Change List
-    2.1. Utilization Features
-    Requirement ID: UTIL-1
-    Description: The list of commands to be tested has been updated.
-    - Format.
-    - Secure erase.
-    - FW update.
-    - Controller reset to load FW.
-    - Health status.
-    - SMART status.
-    CHUNK META:
-    {{'chunk_id': '7b1b1b7b-7b7b-4b7b-8b7b-7b7b7b7b7b7b-7b7b7b7b-7b7b-4b7b-8b7b-7b7b7b7b7b7b', 'page': 3, 'score': 'HIGH'}}
-    </additional-context>
-</context>
-
-<question>
-Can you describe the features of UTIL-1?
-</question>
-
-Answer:
-### Answer
-I can find the requirements for UTIL-1 in the document "Datacenter NVMe SSD Specification v2.0r21.pdf" and "datacenter-nvme-ssd-specification-v2-5-pdf.pdf". 
-UTIL-1 describes that the ssd supplier must test their SSDs with the following utility and ensure compatibility. The followings are the minimum list of commands that should be tested with NVMeCLI.
-
-- Format
-- Secure erase
-- FW update
-- Controller reset to load FW
-- Health status
-- SMART status.
-If you want to know more details, you can refer to the document "datacenter-nvme-ssd-specification-v2-5-pdf.pdf" page 170, which is the latest version of the document.
-
-### Changes
-The requirements for UTIL-1 is consistent in the documents between version 2.0r21 and 2.5.
-The only difference is the section number, which is 16.1 in the document "Datacenter NVMe SSD Specification v2.0r21.pdf" and 18.1 in the document "datacenter-nvme-ssd-specification-v2-5-pdf.pdf".
-
-However, the document "Datacenter_NVMe_SSD_Specification_v2.5_Addendum_v0.20.pdf" provides an updated list of commands to be tested with NVMeCLI.
-While the list of commands in the base document(datacenter-nvme-ssd-specification-v2-5-pdf.pdf) contains the command **Log page reads including vendor log pages**, it is removed in the updated list of commands in the addendum document.
-
-### References
-#### Base Documents
-- Datacenter NVMe SSD Specification v2.0r21.pdf, page 110
-- datacenter-nvme-ssd-specification-v2-5-pdf.pdf, page 170
-
-#### Additional Documents
-- Datacenter_NVMe_SSD_Specification_v2.5_Addendum_v0.20, page 3
-
---------------------------------------------------
-
-<chat-history>
-{history}
-</chat-history>
+<context-features>
+{context_features}
+</context-features>
 
 <context>
 {context}
 </context>
+
+<chat-history>
+{history}
+</chat-history>
 
 <question>
 {query}
@@ -227,132 +125,39 @@ While the list of commands in the base document(datacenter-nvme-ssd-specificatio
 
 Answer:
 """
-generation_with_hierarchy_prompt = ChatPromptTemplate.from_template(generation_with_hierarchy_prompt_template)
+generation_with_hierarchy_prompt = ChatPromptTemplate.from_template(generation_with_hierarchy_prompt_template).partial(lang="English", context_features="")
 
 generation_without_hierarchy_prompt_template = """
 You are an assistant for question-answering tasks.
 Use the following pieces of retrieved context to answer the question considering the chat history.
 
+Context can have specific features that are related to the question.
+You should consider the context features to answer the question.
+If context features are not given, you can ignore them.
+
+Think step by step to find the answer.
+
 If you don't know the answer, just say that you don't know.
 
 You can answer in descriptive form or paraphrased form if you want, and keep the answer concise.
 
-You should answer with the format of the example answer below.
+You should answer with the reference to the documents.
+When you reference the documents, you should provide the exact title of the document.
 Feel free to use markdown to format your answer.
 
---------------------------------------------------
-**** Example 1 ****
-<chat-history>
-Human: Can you describe the features of UTIL-1?
-</chat-history>
+You should answer in {lang}.
 
-<context>
---- Document: Datacenter NVMe SSD Specification v2.0r21.pdf ---
-Average Score: 0.99
-DOC META:
-{{'doc_id': 's3://llm-project-demo-bucket/frequently_access_documents/OCP/2.0/Datacenter+NVMe+SSD+Specification+v2.0r21.pdf', 'doc_name': 'Datacenter NVMe SSD Specification v2.0r21.pdf', 'category': 'base', 'version': 'v2.0r21', 'uri': 'https://llm-project-demo-bucket.s3.ap-northeast-1.amazonaws.com/frequently_access_documents/OCP/2.0/Datacenter+NVMe+SSD+Specification+v2.0r21.pdf'}}
-
---- Chunk: dbc8ea71-dd6e-45df-a78c-0bec284d170c-9869493d-2d77-484c-82c3-c9b4befcef55 ---
-Score: 0.99
-TEXT:
-16.1 NVMe CLI Management Utility
-The NVMeCLI utility (https://github.com/linux-nvme/nvme-cli) shall be used as one of the management utilities for NVMe devices.
-Requirement ID: UTIL-1
-Description: The SSD supplier must test their SSDs with this utility and ensure compatibility. The following is the minimum list of commands that need to be tested with NVMeCLI:
-- Format.
-- Secure erase.
-- FW update.
-- Controller reset to load FW.
-- Health status.
-- Log page reads including vendor log pages.
-- SMART status.
-CHUNK META:
-{{'chunk_id': 'dbc8ea71-dd6e-45df-a78c-0bec284d170c-9869493d-2d77-484c-82c3-c9b4befcef55', 'page': 110, 'score': 'HIGH'}}
-
-
---- Document: datacenter-nvme-ssd-specification-v2-5-pdf.pdf ---
-Average Score: 0.97
-DOC META:
-{{'doc_id': 's3://llm-project-demo-bucket/frequently_access_documents/OCP/2.5/datacenter-nvme-ssd-specification-v2-5-pdf.pdf', 'doc_name': 'datacenter-nvme-ssd-specification-v2-5-pdf.pdf', 'category': 'base', 'version': 'v2.5', 'uri': 'https://llm-project-demo-bucket.s3.ap-northeast-1.amazonaws.com/frequently_access_documents/OCP/2.5/datacenter-nvme-ssd-specification-v2-5-pdf.pdf'}}
-
---- Chunk: 7b1b1b7b-7b7b-4b7b-8b7b-7b7b7b7b7b7b-7b7b7b7b-7b7b-4b7b-8b7b-7b7b7b7b7b7b ---
-Score: 0.97
-TEXT:
-18.1 NVMe CLI Management Utility
-The NVMeCLI utility (https://github.com/linux-nvme/nvme-cli/tree/master/plugins/ocp) shall be used as one of the management utilities for NVMe devices.
-Requirement ID: UTIL-1
-Description: The SSD supplier must test their SSDs with this utility and ensure compatibility. The following is the minimum list of commands that need to be tested with NVMeCLI:
-- Format.
-- Secure erase.
-- FW update.
-- Controller reset to load FW.
-- Health status.
-- Log page reads including vendor log pages.
-- SMART status.
-CHUNK META:
-{{'chunk_id': '7b1b1b7b-7b7b-4b7b-8b7b-7b7b7b7b7b7b-7b7b7b7b-7b7b-4b7b-8b7b-7b7b7b7b7b7b', 'page': 170, 'score': 'HIGH'}}
-
---- Document: Datacenter_NVMe_SSD_Specification_v2.5_Addendum_v0.20.pdf ---
-Based on: s3://llm-project-demo-bucket/frequently_access_documents/OCP/2.5/datacenter-nvme-ssd-specification-v2-5-pdf.pdf
-Average Score: 0.89
-DOC META:
-{{'doc_id': 's3://llm-project-demo-bucket/frequently_access_documents/OCP/2.5/Datacenter_NVMe_SSD_Specification_v2.5_Addendum_v0.20.pdf', 'doc_name': 'Datacenter_NVMe_SSD_Specification_v2.5_Addendum_v0.20.pdf', 'category': 'additional', 'version': 'v2.5-addendum-v0.20', 'uri': 'https://llm-project-demo-bucket.s3.ap-northeast-1.amazonaws.com/frequently_access_documents/OCP/2.5/Datacenter_NVMe_SSD_Specification_v2.5_Addendum_v0.20.pdf', 'base_doc_id': 's3://llm-project-demo-bucket/frequently_access_documents/OCP/2.5/datacenter-nvme-ssd-specification-v2-5-pdf.pdf'}}
-
---- Chunk: 7b1b1b7b-7b7b-4b7b-8b7b-7b7b7b7b7b7b-7b7b7b7b-7b7b-4b7b-8b7b-7b7b7b7b7b7b ---
-Score: 0.89
-TEXT:
-2. Change List
-2.1. Utilization Features
-Requirement ID: UTIL-1
-Description: The list of commands to be tested has been updated.
-- Format.
-- Secure erase.
-- FW update.
-- Controller reset to load FW.
-- Health status.
-- SMART status.
-CHUNK META:
-{{'chunk_id': '7b1b1b7b-7b7b-4b7b-8b7b-7b7b7b7b7b7b-7b7b7b7b-7b7b-4b7b-8b7b-7b7b7b7b7b7b', 'page': 3, 'score': 'HIGH'}}
-</context>
-
-<question>
-Can you describe the features of UTIL-1?
-</question>
-
-Answer:
-### Answer
-I can find the requirements for UTIL-1 in the document "Datacenter NVMe SSD Specification v2.0r21.pdf" and "datacenter-nvme-ssd-specification-v2-5-pdf.pdf". 
-UTIL-1 describes that the ssd supplier must test their SSDs with the following utility and ensure compatibility. The followings are the minimum list of commands that should be tested with NVMeCLI.
-
-- Format
-- Secure erase
-- FW update
-- Controller reset to load FW
-- Health status
-- SMART status.
-If you want to know more details, you can refer to the document "datacenter-nvme-ssd-specification-v2-5-pdf.pdf" page 170, which is the latest version of the document.
-
-### Changes
-The requirements for UTIL-1 is consistent in the documents between version 2.0r21 and 2.5.
-The only difference is the section number, which is 16.1 in the document "Datacenter NVMe SSD Specification v2.0r21.pdf" and 18.1 in the document "datacenter-nvme-ssd-specification-v2-5-pdf.pdf".
-
-However, the document "Datacenter_NVMe_SSD_Specification_v2.5_Addendum_v0.20.pdf" provides an updated list of commands to be tested with NVMeCLI.
-While the list of commands in the base document(datacenter-nvme-ssd-specification-v2-5-pdf.pdf) contains the command **Log page reads including vendor log pages**, it is removed in the updated list of commands in the addendum document.
-
-### References
-- Datacenter NVMe SSD Specification v2.0r21.pdf, page 110
-- datacenter-nvme-ssd-specification-v2-5-pdf.pdf, page 170
-- Datacenter_NVMe_SSD_Specification_v2.5_Addendum_v0.20, page 3
-
---------------------------------------------------
-
-<chat-history>
-{history}
-</chat-history>
+<context-features>
+{context_features}
+</context-features>
 
 <context>
 {context}
 </context>
+
+<chat-history>
+{history}
+</chat-history>
 
 <question>
 {query}
@@ -360,7 +165,78 @@ While the list of commands in the base document(datacenter-nvme-ssd-specificatio
 
 Answer:
 """
-generation_without_hierarchy_prompt = ChatPromptTemplate.from_template(generation_without_hierarchy_prompt_template)
+generation_without_hierarchy_prompt = ChatPromptTemplate.from_template(generation_without_hierarchy_prompt_template).partial(lang="English", context_features="")
+
+few_shot_example_prompt = PromptTemplate(
+    input_variables=["history", "query", "answer"],
+    template="<example>\n<chat-history>{history}</chat-history>\n<question>{query}</question>\n<answer>{answer}</answer>\n</example>"
+)
+
+few_shot_prompt_prefix = """
+You are an assistant for question-answering tasks.
+Use the following pieces of retrieved context to answer the question considering the chat history.
+
+Context can have specific features that are related to the question.
+You should consider the context features to answer the question.
+If context features are not given, you can ignore them.
+
+Think step by step to find the answer.
+
+If you don't know the answer, just say that you don't know.
+
+You can answer in descriptive form or paraphrased form if you want, and keep the answer concise.
+
+You should answer with the reference to the documents.
+When you reference the documents, you should provide the exact title of the document.
+Feel free to use markdown to format your answer.
+
+You should answer in {lang}.
+
+---------------------------------------
+<examples>
+<context>
+{example_context}
+</context>
+
+"""
+
+few_shot_prompt_suffix = """
+
+</examples>
+---------------------------------------
+
+<context-features>
+{context_features}
+</context-features>
+
+<context>
+{context}
+</context>
+
+<chat-history>
+{history}
+</chat-history>
+
+<question>
+{query}
+</question>
+
+Answer:
+"""
+
+def generate_few_shot_prompt_from(
+    example_context: str, context_features: str, examples: list[dict]
+) -> FewShotPromptTemplate:
+    few_shot_prompt = FewShotPromptTemplate(
+        examples = examples,
+        example_prompt = few_shot_example_prompt,
+        prefix = few_shot_prompt_prefix,
+        suffix = few_shot_prompt_suffix,
+        input_variables = ["context", "example_context", "context_features", "history", "query", "lang"]
+    )
+    return few_shot_prompt.partial(example_context=example_context, context_features=context_features)
+
+
 
 verification_prompt_template = """
 Given context, verify the fact in the response. If the response is correct, say "Yes". If not, say "No".

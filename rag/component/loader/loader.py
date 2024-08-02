@@ -5,7 +5,7 @@ from rag.type import *
 from rag.component.loader import PDFWithMetadataLoader, UpstageLayoutLoader
 from rag import util
 
-def lazy_load(file_path: str) -> Iterable[Chunk]:
+def lazy_load(file_path: str, cache_to_local=True) -> Iterable[Chunk]:
     """Load chunk from s3 or local file path
 
     Args:
@@ -20,9 +20,9 @@ def lazy_load(file_path: str) -> Iterable[Chunk]:
         loader_kwargs={
             "use_ocr": True,
             "to_markdown": True,
-            "overlap_elem_size": 2,
-            "cache_to_local": True,
-            "backup_dir": "./layout_overlap_backup", # TODO configurable
+            "overlap_elem_size": 0,
+            "cache_to_local": cache_to_local,
+            "backup_dir": "./backup", # TODO configurable
         }
     ).lazy_load_as_chunk()
     return chunks_iter
@@ -52,13 +52,16 @@ def _chunk_from_backup_page(page_file_path: str, object_location: Optional[str]=
     file_name = os.path.basename(page_file_path)
     file_name_without_ext = os.path.splitext(file_name)[0]
     
+    page = int(file_name_without_ext.split("_")[-1])
+    pdf_file_name = "_".join(file_name_without_ext.split("_")[:-1]) + ".pdf"
+    
     if object_location is not None:
         file_object_key = os.path.join(object_location, file_name)
         doc_id = util.get_s3_url_from_object_key(file_object_key)
     else:
-        doc_id = page_file_path
+        doc_id = pdf_file_name
     
-    page = int(file_name_without_ext.split("_")[-1])
+
     with open(page_file_path, "r") as f:
         content = f.read()
     

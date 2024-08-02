@@ -12,6 +12,11 @@ def session_init(session_state):
     if "translated_messages" not in session_state:
         session_state.translated_messages = []
 
+def reset_history(session_state):
+    session_state.messages = []
+    session_state.translated_messages = []
+    msg.info("Chat history cleared.")
+
 def display_chat_history(session_state):
     for message in session_state.messages:
         with st.chat_message(message["role"]):

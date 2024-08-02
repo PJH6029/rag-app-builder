@@ -14,8 +14,7 @@ def load_secrets():
     keys = {
         "UPSTAGE_API_KEY",
         "OPENAI_API_KEY",
-        "AWS_REGION",
-        "KENDRA_INDEX_ID",
+        "AWS_DEFAULT_REGION",
         "AWS_ACCESS_KEY_ID",
         "AWS_SECRET_ACCESS_KEY",
         "S3_BUCKET_NAME",
@@ -25,7 +24,19 @@ def load_secrets():
             os.environ[key] = st.secrets[key]
         except KeyError:
             msg.warn(f"Secret '{key}' not found. You may not be able to access some features.")
-        
+
+def load_config(config_path = "config/config.json") -> dict:
+    try:
+        with open(config_path, "r") as f:
+            config = json.load(f)
+        rag_config = config["rag"]
+        global_config = config["global"]
+        rag_config["global"].update(global_config)
+        return rag_config
+    except Exception as e:
+        msg.fail(f"Failed to load config: {e}")
+        return {}
+
 def merge_configs(*configs: dict) -> dict:
     merged_config = {}
     for config in configs:
@@ -222,12 +233,12 @@ def upload_to_s3_with_metadata(
     
     if not os.path.exists(metadata_file_path):
         if metadata is None:
-            msg.fail(f"Metadata file not found: {metadata_file_path}, and metadata is not provided.")
-            return False
-        # write metadata to file
-        msg.info(f"Writing metadata to file: {metadata_file_path}")
-        with open(metadata_file_path, "w") as f:
-            f.write(json.dumps(metadata, indent=4))
+            msg.warn(f"Metadata file not found: {metadata_file_path}, and metadata is not provided. Uploading file only.")
+        else:
+            # write metadata to file
+            msg.info(f"Writing metadata to file: {metadata_file_path}")
+            with open(metadata_file_path, "w") as f:
+                f.write(json.dumps(metadata, indent=4))
     
     file_object_key = os.path.join(object_location, file_name)
     metadata_object_key = os.path.join(object_location, metadata_file_name)

@@ -12,61 +12,62 @@ recent_chunks = None
 recent_translated_query = None
 rag_manager = None
 
-def init(config: dict=None):
-    # set_debug(True)
-    
+_default_rag_config = {
+    "global": {
+        "context-hierarchy": False, # used in selecting retriever and generation prompts
+        "lang": "Korean",
+    },
+    "ingestion": { # optional
+        "ingestor": "pinecone-multivector",
+        "embeddings": "text-embedding-3-small",
+        "namespace": "parent",
+        "sub-namespace": "child",
+    },
+    "transformation": { # optional
+        "model": "gpt-4o-mini",
+        "enable": {
+            "translation": True, # if English, unnecessary
+            "rewriting": True,
+            "expansion": False,
+            "hyde": True,
+        },
+    },
+    "retrieval": { # mandatory
+        # "retriever": ["pinecone-multivector", "kendra"],
+        "retriever": ["pinecone-multivector"],
+        # "weights": [0.5, 0.5],
+        
+        "namespace": "parent",
+        "sub-namespace": "child",
+        
+        "embeddings": "text-embedding-3-small", # may be optional
+        "top_k": 6, # for multi-vector retriever, context size is usually big. Use small top_k
+        "post_retrieval": {
+            "rerank": True,
+            # TODO
+        }
+    },
+    "generation": { # mandatory
+        "model": "gpt-4o",
+    },
+    "fact_verification": { # optional
+        "model": "gpt-4o-mini",
+        "enable": False,
+    },
+}
+
+def init(config: Optional[dict]=None):    
     util.load_secrets()
     global rag_manager
     rag_manager = RAGManager()
-    _config = {
-        "global": {
-            "context-hierarchy": True, # used in selecting retriever and generation prompts
-        },
-        "ingestion": { # optional
-            "ingestor": "pinecone-multivector",
-            "embeddings": "text-embedding-3-small",
-            "namespace": "parent-upstage-overlap-backup",
-            "sub-namespace": "child-upstage-overlap-backup",
-        },
-        "transformation": { # optional
-            "model": "gpt-4o-mini",
-            "enable": {
-                "translation": True,
-                "rewriting": True,
-                "expansion": False,
-                "hyde": True,
-            },
-        },
-        "retrieval": { # mandatory
-            # "retriever": ["pinecone-multivector", "kendra"],
-            "retriever": ["pinecone-multivector"],
-            # "retriever": ["kendra"],
-            # "weights": [0.5, 0.5],
-            
-            "namespace": "parent-upstage-overlap-backup",
-            "sub-namespace": "child-upstage-overlap-backup",
-            # "namespace": "parent-upstage-backup",
-            # "sub-namespace": "child-upstage-backup",
-            
-            "embeddings": "text-embedding-3-small", # may be optional
-            "top_k": 6, # for multi-vector retriever, context size is usually big. Use small top_k
-            "post_retrieval": {
-                "rerank": True,
-                # TODO
-            }
-        },
-        "generation": { # mandatory
-            "model": "gpt-4o",
-        },
-        "fact_verification": { # optional
-            "model": "gpt-4o-mini",
-            "enable": False,
-        },
-    } if config is None else config
-    
+    if config is None:
+        msg.warn("No config provided. Using default config.")
+        _config = _default_rag_config
+    else:
+        _config = config
     rag_manager.set_config(_config)
 
-init()
+init(util.load_config())
     
 
 def query(query: str, history: list[ChatLog]=None) -> GenerationResult:
@@ -112,8 +113,8 @@ def query_stream(query: str, history: list[ChatLog]=None) -> Generator[Generatio
         
         print(cb)
     
-def upload_data(file_path: str, object_location: str, metadata: Optional[dict] = None) -> bool:
-    return rag_manager.upload_data(file_path, object_location, metadata)
+def upload_data_to_s3(file_path: str, object_location: str, metadata: Optional[dict] = None) -> bool:
+    return rag_manager.upload_data_to_s3(file_path, object_location, metadata)
 
 def ingest_data(file_path: str) -> int:
     return rag_manager.ingest(file_path)
@@ -121,5 +122,5 @@ def ingest_data(file_path: str) -> int:
 async def aingest_data(s3_url: str) -> int:
     return await rag_manager.aingest(s3_url)
 
-def ingest_from_backup(backup_dir: str, object_location: str) -> int:
+def ingest_data_from_backup(backup_dir: str, object_location: Optional[str] = None) -> int:
     return rag_manager.ingest_from_backup(backup_dir, object_location)

@@ -9,7 +9,6 @@ langchain-upstage
 boto3
 wasabi
 tiktoken
-faiss-cpu
 pypdf
 pydantic
 pinecone-client

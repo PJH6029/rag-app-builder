@@ -119,7 +119,6 @@ class PineconeMultiVectorRetriever(BaseRAGRetriever):
                 for key in id_scores:
                     id_scores[key] = (id_scores[key] - min_score) / (max_score - min_score)
 
-            
             # assign scores
             for retrieved_chunk_raw in retrieved_chunks_raw:
                 chunk_id = retrieved_chunk_raw.metadata["chunk_id"]

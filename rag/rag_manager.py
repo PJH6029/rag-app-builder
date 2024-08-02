@@ -135,7 +135,7 @@ class RAGManager:
         return -1
     
     def ingest_from_backup(
-        self, backup_dir: str, object_location: str, batch_size: int = 20
+        self, backup_dir: str, object_location: Optional[str] = None, batch_size: int = 20
     ) -> int:
         msg.info(f"Ingesting data from {backup_dir}")
         start = time.time()
@@ -152,7 +152,7 @@ class RAGManager:
         msg.good(f"{chunks_cnt} chunks ingested in {end-start:.2f}s")
         return chunks_cnt
 
-    def upload_data(self, file_path: str, object_location: str, metadata: Optional[dict] = None) -> bool:
+    def upload_data_to_s3(self, file_path: str, object_location: str, metadata: Optional[dict] = None) -> bool:
         msg.info(f"Uploading data from {file_path} to {object_location}")
         start = time.time()
         
