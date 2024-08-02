@@ -1,0 +1,17 @@
+.env
+__pycache__
+.DS_Store
+venv
+venv*
+.local
+.cache
+.vscode
+queries.txt
+ref_docs/*
+evaluate/evaluation/*
+evaluate/experiment/*
+evaluate/reference/*
+.streamlit/secrets.toml
+layout_backup/*
+layout_overlay_backup/*
+layout*/*
