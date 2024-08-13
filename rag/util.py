@@ -163,6 +163,7 @@ def deflatten_dict(d: dict[str, Any], sep: str = "/") -> dict:
         d_ptr[parts[-1]] = value
     return result
 
+# TODO ensure doc_id is in metadata
 def doc_to_chunk(document: Document) -> Chunk:
     try:
         chunk_id = str(uuid.uuid4())
@@ -177,7 +178,6 @@ def doc_to_chunk(document: Document) -> Chunk:
                 "source": MetadataSearch.search_source(document.metadata),
             },
             chunk_meta={
-                "chunk_id": chunk_id,
                 "page": page,
             }
         )

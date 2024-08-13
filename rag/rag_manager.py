@@ -21,11 +21,11 @@ from rag.component import chunker, loader
 
 
 class Managers(TypedDict):
-    ingestor: IngestorManager
-    transformer: TransformerManager
-    retriever: RetrieverManager
-    generator: GeneratorManager
-    fact_verifier: FactVerifierManager
+    ingestion: IngestorManager
+    transformation: TransformerManager
+    retrieval: RetrieverManager
+    generation: GeneratorManager
+    fact_verification: FactVerifierManager
     
     def __getitem__(self, key: str) -> BasePipelineManager:
         return self.get(key)
@@ -33,11 +33,11 @@ class Managers(TypedDict):
 class RAGManager:
     def __init__(self) -> None:
         self.managers: Managers = {
-            "ingestor": IngestorManager(),
-            "transformer": TransformerManager(),
-            "retriever": RetrieverManager(),
-            "generator": GeneratorManager(),
-            "fact_verifier": FactVerifierManager(),
+            "ingestion": IngestorManager(),
+            "transformation": TransformerManager(),
+            "retrieval": RetrieverManager(),
+            "generation": GeneratorManager(),
+            "fact_verification": FactVerifierManager(),
         }
         
         self.config = {}
@@ -55,7 +55,7 @@ class RAGManager:
             lambda: f"Transforming query: {query} with {len(history)} history...",
             lambda: f"Query transformed into {len(queries)} queries"
         ):
-            queries = self.managers["transformer"].transform(query, history)
+            queries = self.managers["transformation"].transform(query, history)
             msg.info(f"Transformed queries: {queries}")
             return queries
 
@@ -64,7 +64,7 @@ class RAGManager:
             lambda: f"Retrieving with {len(queries)} queries...",
             lambda: f"Retrieved {len(chunks)} chunks"
         ):
-            chunks = self.managers["retriever"].retrieve(queries)
+            chunks = self.managers["retrieval"].retrieve(queries)
             return chunks
 
     def generate(
@@ -82,7 +82,7 @@ class RAGManager:
         ):
             context = util.format_chunks(chunks, self.global_config.get("context-hierarchy", False))
             history_str = util.format_history(history)
-            generation_response = self.managers["generator"].generate(query, history_str, context)
+            generation_response = self.managers["generation"].generate(query, history_str, context)
             return generation_response
     
     def generate_stream(
@@ -100,7 +100,7 @@ class RAGManager:
         ):
             context = util.format_chunks(chunks, self.global_config.get("context-hierarchy", False))
             history_str = util.format_history(history)
-            yield from self.managers["generator"].generate_stream(query, history_str, context)
+            yield from self.managers["generation"].generate_stream(query, history_str, context)
     
     def verify_fact(self, response: str, chunks: list[Chunk]) -> VerificationResult:
         with time_logger(
@@ -108,7 +108,7 @@ class RAGManager:
             lambda: f"Fact verification completed"
         ):
             context = util.format_chunks(chunks or [], self.global_config.get("context-hierarchy", False))
-            verification_response = self.managers["fact_verifier"].verify(response, context)
+            verification_response = self.managers["fact_verification"].verify(response, context)
             return verification_response
     
     # def verify_fact_stream(self, response: str, chunks: list[Chunk]) -> Generator[VerificationResult, None, None]:
@@ -131,7 +131,7 @@ class RAGManager:
             chunks_cnt = util.execute_as_batch(
                 loader,
                 batch_size=batch_size,
-                func=self.managers["ingestor"].ingest
+                func=self.managers["ingestion"].ingest
             )
             return chunks_cnt
     

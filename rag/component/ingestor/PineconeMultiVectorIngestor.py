@@ -85,8 +85,7 @@ class ChunkGenerator:
                     doc_id=chunk.doc_id,
                     chunk_id=new_chunk_id,
                     doc_meta={**chunk.doc_meta},
-                    # chunk_meta={**chunk.chunk_meta, "chunk_id": new_chunk_id}
-                    chunk_meta={**chunk.chunk_meta}, # TODO check if chunk_id is ingested
+                    chunk_meta={**chunk.chunk_meta},
                 )
                 new_chunk.chunk_meta[self.parent_id_key] = chunk.chunk_id
                 new_chunks.append(new_chunk)

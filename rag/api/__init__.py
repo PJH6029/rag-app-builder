@@ -1,8 +1,9 @@
-from rag.api.api import query, query_stream, upload_data, ingest_data
+from rag.api.api import query, query_stream, upload_data, ingest_data, ingest_from_backup
 
 __all__ = [
     "query",
     "query_stream",
     "upload_data",
     "ingest_data",
+    "ingest_from_backup"
 ]

@@ -91,7 +91,7 @@ class PineconeMultiVectorRetriever(BaseRAGRetriever):
             
             sub_chunks = self._get_retrieval_chain(len(_queries)).invoke({"queries": _queries, "filter": filter_dict, "top_k": int(self.top_k * self.PARENT_CHILD_FACTOR)})
             sub_chunk_cnt = len(sub_chunks)
-            
+
             for sub_chunk in sub_chunks:
                 if self._parent_id_key in sub_chunk.chunk_meta:
                     if sub_chunk.chunk_meta[self._parent_id_key] not in id_scores:
@@ -152,7 +152,6 @@ class PineconeMultiVectorRetriever(BaseRAGRetriever):
             "orAll": "$or",
         }
         
-        # TODO seperator
         key_map = {
             "base_doc_id": "doc_meta/Attributes/base-doc-id",
             "category": "doc_meta/Attributes/_category",
@@ -176,12 +175,12 @@ class PineconeMultiVectorRetriever(BaseRAGRetriever):
         
         chunk_meta = metadata.get("chunk_meta", {})
         doc_name = util.MetadataSearch.search_doc_id(metadata).split("/")[-1]
-        return Chunk(
+        chunk = Chunk(
             text=chunk_raw.page_content,
             chunk_id=util.MetadataSearch.search_chunk_id(metadata),
             doc_id=util.MetadataSearch.search_doc_id(metadata),
             doc_meta=util.remove_falsy({
-                # "doc_id": util.MetadataSearch.search_doc_id(metadata), # TODO check if doc_id is ingested
+                **doc_meta,
                 "doc_name": doc_name,
                 "category": doc_meta.get("Attributes", {}).get("_category"),
                 "base_doc_id": doc_meta.get("Attributes", {}).get("base-doc-id"),
@@ -190,10 +189,10 @@ class PineconeMultiVectorRetriever(BaseRAGRetriever):
             chunk_meta={
                 **chunk_meta, 
                 "score": metadata.get("score"), 
-                # "chunk_id": util.MetadataSearch.search_chunk_id(metadata) # TODO check if chunk_id is ingested
             },
             score=metadata.get("score"),
         )
+        return chunk
         
     @classmethod
     def from_config(cls, config: dict) -> "PineconeMultiVectorRetriever":

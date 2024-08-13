@@ -1,6 +1,6 @@
 from typing import Literal, Union, get_args, TypedDict, Any
 
-from langchain_core.pydantic_v1 import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, model_validator
 from langchain_core.language_models import BaseLanguageModel
 from langchain_core.embeddings import Embeddings
 from langchain_core.documents import Document
@@ -23,13 +23,10 @@ class Chunk(BaseModel):
         chunk_id = v.get("chunk_id")
         
         # check doc_id
-        if not doc_meta.get("doc_id"):
-            doc_meta["doc_id"] = doc_id
+        doc_meta["doc_id"] = doc_id
         
         # check chunk_id
-        if not chunk_meta.get("chunk_id"):
-            chunk_meta["chunk_id"] = chunk_id
-        
+        chunk_meta["chunk_id"] = chunk_id
         return v
     
     def __str__(self) -> str:
