@@ -12,10 +12,14 @@ recent_chunks = None
 recent_translated_query = None
 rag_manager = None
 
-_default_rag_config = {
+# TODO make config class
+DEFAULT_RAG_CONFIG = {
     "global": {
         "context-hierarchy": False, # used in selecting retriever and generation prompts
-        "lang": "Korean",
+        "lang": {
+            "user": "Korean",
+            "source": "Korean",
+        }
     },
     "ingestion": { # optional
         "ingestor": "pinecone-multivector",
@@ -42,10 +46,6 @@ _default_rag_config = {
         
         "embeddings": "text-embedding-3-small", # may be optional
         "top_k": 6, # for multi-vector retriever, context size is usually big. Use small top_k
-        "post_retrieval": {
-            "rerank": True,
-            # TODO
-        }
     },
     "generation": { # mandatory
         "model": "gpt-4o",
@@ -56,19 +56,20 @@ _default_rag_config = {
     },
 }
 
-def init(config: Optional[dict]=None):    
+def init():    
     util.load_secrets()
     global rag_manager
     rag_manager = RAGManager()
+    
+    config = util.load_config()
     if config is None:
         msg.warn("No config provided. Using default config.")
-        _config = _default_rag_config
+        _config = DEFAULT_RAG_CONFIG
     else:
         _config = config
     rag_manager.set_config(_config)
 
-init(util.load_config())
-    
+init()
 
 def query(query: str, history: list[ChatLog]=None) -> GenerationResult:
     history = history or []
@@ -107,14 +108,12 @@ def query_stream(query: str, history: list[ChatLog]=None) -> Generator[Generatio
             yield {"generation": response}
             generation_response += response
         
-        # TODO visualize the result in frontend
-        for response in rag_manager.verify_fact_stream(generation_response, chunks):
-            yield {"fact_verification": response}
+        yield {"fact_verification": rag_manager.verify_fact(generation_response, chunks)}
         
         print(cb)
     
-def upload_data_to_s3(file_path: str, object_location: str, metadata: Optional[dict] = None) -> bool:
-    return rag_manager.upload_data_to_s3(file_path, object_location, metadata)
+def upload_data(file_path: str, object_location: str, metadata: Optional[dict] = None) -> bool:
+    return rag_manager.upload_data(file_path, object_location, metadata)
 
 def ingest_data(file_path: str) -> int:
     return rag_manager.ingest(file_path)
@@ -122,5 +121,5 @@ def ingest_data(file_path: str) -> int:
 async def aingest_data(s3_url: str) -> int:
     return await rag_manager.aingest(s3_url)
 
-def ingest_data_from_backup(backup_dir: str, object_location: Optional[str] = None) -> int:
+def ingest_from_backup(backup_dir: str, object_location: str) -> int:
     return rag_manager.ingest_from_backup(backup_dir, object_location)

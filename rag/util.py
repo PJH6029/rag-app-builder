@@ -226,7 +226,6 @@ def upload_to_s3_with_metadata(
     file_directory = os.path.dirname(file_path)
     metadata_file_path = os.path.join(file_directory, metadata_file_name)
     
-    # if file or metadata does not exist, return
     if not os.path.exists(file_path):
         msg.fail(f"File not found: {file_path}")
         return False
