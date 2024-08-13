@@ -8,6 +8,7 @@ from rag.component import llm, prompt
 from rag.managers.base import BasePipelineManager
 from rag.type import Chunk, ChatLog
 from rag import util
+from rag.config import GenerationConfig
 
 class GeneratorManager(BasePipelineManager):
     def __init__(self) -> None:
@@ -15,9 +16,9 @@ class GeneratorManager(BasePipelineManager):
         self.generator_name = None
         self.prompt = None
         
-    def set_config(self, config: dict):
-        self.generator_name = config.get("model")
-        self.user_lang = config.get("lang", {}).get("user", "Korean")
+    def set_config(self, config: GenerationConfig):
+        self.generator_name = config.model
+        self.user_lang = config.global_.lang.user
         
         try:
             from config.few_shot_examples import few_shot_examples

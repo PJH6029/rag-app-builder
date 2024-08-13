@@ -9,6 +9,7 @@ from langchain_core.documents import Document
 from rag.component.retriever.base import BaseRAGRetriever
 from rag.type import *
 from rag import util
+from rag.config import RetrievalConfig
 
 class KendraRetriever(BaseRAGRetriever):
     def __init__(self, top_k: int = 5, **kwargs) -> None:
@@ -132,6 +133,6 @@ class KendraRetriever(BaseRAGRetriever):
         return doc_meta, chunk_meta
     
     @classmethod
-    def from_config(cls, config: dict) -> BaseRAGRetriever:
-        top_k = config.get("top_k", cls.DEFAULT_TOP_K)
+    def from_config(cls, config: RetrievalConfig) -> BaseRAGRetriever:
+        top_k = config.top_k
         return cls(top_k=top_k)

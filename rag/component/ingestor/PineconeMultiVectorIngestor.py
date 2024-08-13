@@ -14,6 +14,7 @@ from rag.type import Chunk
 from rag.component import chunker, embeddings, llm
 from rag.component.ingestor import prompt
 from rag.util import time_logger
+from rag.config import IngestionConfig
 
 class ChunkGenerator:
     def __init__(
@@ -179,14 +180,14 @@ class PineconeMultiVectorIngestor(BaseRAGIngestor):
         return parent_ingestion_cnt
     
     @classmethod
-    def from_config(cls, config: dict) -> "PineconeMultiVectorIngestor":
-        embeddings_name = config.get("embeddings")
-        parent_namespace = config.get("namespace")
-        child_namespace = config.get("sub-namespace")
+    def from_config(cls, config: IngestionConfig) -> "PineconeMultiVectorIngestor":
+        embeddings_name = config.embeddings
+        parent_namespace = config.namespace
+        child_namespace = config.sub_namespace
         
         embeddings_model = embeddings.get_model(embeddings_name)
         
-        source_lang = config.get("lang", {}).get("source", "English")
+        source_lang = config.global_.lang.source
         
         return cls(
             embeddings=embeddings_model,

@@ -10,6 +10,7 @@ import json
 import time
 
 from rag.type import *
+from rag.config import *
 
 def load_secrets():
     msg.info("Loading secrets...")
@@ -43,11 +44,15 @@ def time_logger(
     msg.good(f"{end_msg_cb()} ({end-start:.2f}s)")
 
 
-def merge_configs(*configs: dict) -> dict:
-    merged_config = {}
-    for config in configs:
-        merged_config = {**merged_config, **config}
-    return merged_config
+# def merge_configs(*configs: RAGPipelineConfig) -> dict:
+#     merged_config = {}
+#     for config in configs:
+#         merged_config = {**merged_config, **config}
+#     return merged_config
+
+def attach_global_config(config: RAGPipelineConfig, global_config: GlobalConfig) -> RAGPipelineConfig:
+    config.global_ = global_config
+    return config
 
 def remove_none(config: dict) -> dict:
     return {k: v for k, v in config.items() if v is not None}

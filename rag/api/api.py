@@ -7,65 +7,70 @@ from langchain.globals import set_debug
 from rag.rag_manager import RAGManager
 from rag import util
 from rag.type import *
+from rag.config import *
 
 recent_chunks = None
 recent_translated_query = None
 rag_manager = None
 
 # TODO make config class
-DEFAULT_RAG_CONFIG = {
-    "global": {
-        "lang": {
-            "user": "Korean",
-            "source": "Korean",
-        }
-    },
-    "ingestion": { # optional
-        "ingestor": "pinecone-multivector",
-        "embeddings": "text-embedding-3-small",
-        "namespace": "parent",
-        "sub-namespace": "child",
-    },
-    "transformation": { # optional
-        "model": "gpt-4o-mini",
-        "enable": {
-            "translation": True, # if English, unnecessary
-            "rewriting": True,
-            "expansion": False,
-            "hyde": True,
-        },
-    },
-    "retrieval": { # mandatory
-        # "retriever": ["pinecone-multivector", "kendra"],
-        "retriever": ["pinecone-multivector"],
-        # "weights": [0.5, 0.5],
+# DEFAULT_RAG_CONFIG = {
+#     "global": {
+#         "lang": {
+#             "user": "Korean",
+#             "source": "Korean",
+#         }
+#     },
+#     "ingestion": { # optional
+#         "ingestor": "pinecone-multivector",
+#         "embeddings": "text-embedding-3-small",
+#         "namespace": "parent",
+#         "sub-namespace": "child",
+#     },
+#     "transformation": { # optional
+#         "model": "gpt-4o-mini",
+#         "enable": {
+#             "translation": True, # if English, unnecessary
+#             "rewriting": True,
+#             "expansion": False,
+#             "hyde": True,
+#         },
+#     },
+#     "retrieval": { # mandatory
+#         # "retriever": ["pinecone-multivector", "kendra"],
+#         "retriever": ["pinecone-multivector"],
+#         # "weights": [0.5, 0.5],
         
-        "namespace": "parent",
-        "sub-namespace": "child",
+#         "namespace": "parent",
+#         "sub-namespace": "child",
         
-        "embeddings": "text-embedding-3-small", # may be optional
-        "top_k": 6, # for multi-vector retriever, context size is usually big. Use small top_k
-    },
-    "generation": { # mandatory
-        "model": "gpt-4o",
-    },
-    "fact_verification": { # optional
-        "model": "gpt-4o-mini",
-        "enable": False,
-    },
-}
+#         "embeddings": "text-embedding-3-small", # may be optional
+#         "top_k": 6, # for multi-vector retriever, context size is usually big. Use small top_k
+#     },
+#     "generation": { # mandatory
+#         "model": "gpt-4o",
+#     },
+#     "fact_verification": { # optional
+#         "model": "gpt-4o-mini",
+#         "enable": False,
+#     },
+# }
 
 def init():    
     util.load_secrets()
     global rag_manager
     rag_manager = RAGManager()
     
-    config = util.load_config()
-    if config is None:
+    config_dict = util.load_config()
+    if config_dict is None:
         msg.warn("No config provided. Using default config.")
-        _config = DEFAULT_RAG_CONFIG
+        _config = RAGConfig()
     else:
-        _config = config
+        try:
+            _config = RAGConfig(**config_dict)
+        except Exception as e:
+            msg.warn(f"Invalid config provided. Using default config. {e}")
+            _config = RAGConfig()
     rag_manager.set_config(_config)
 
 init()
@@ -86,7 +91,7 @@ def query(query: str, history: list[ChatLog]=None) -> GenerationResult:
         
         print(cb)
     return util.remove_falsy({"transformation": queries, "retrieval": chunks, "generation": generation_response, "fact_verification": verification_response})
-    
+
 
 def query_stream(query: str, history: list[ChatLog]=None) -> Generator[GenerationResult, None, None]:
     history = history or []
@@ -109,7 +114,7 @@ def query_stream(query: str, history: list[ChatLog]=None) -> Generator[Generatio
         
         verification = rag_manager.verify_fact(generation_response, chunks)
         if verification is not None:
-            yield {"fact_verification": rag_manager.verify_fact(generation_response, chunks)}
+            yield {"fact_verification": verification}
         
         print(cb)
     

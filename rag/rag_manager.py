@@ -18,7 +18,7 @@ from rag.type import *
 from rag import util
 from rag.util import time_logger
 from rag.component import chunker, loader
-
+from rag.config import RAGConfig
 
 class Managers(TypedDict):
     ingestion: IngestorManager
@@ -40,14 +40,14 @@ class RAGManager:
             "fact_verification": FactVerifierManager(),
         }
         
-        self.config = {}
+        self.config: Optional[RAGConfig] = None
     
-    def set_config(self, config: dict):
-        self.config = {**config}
-        self.global_config = config.get("global", {})
+    def set_config(self, config: RAGConfig) -> None:
+        self.config = config
+        self.global_config = config.global_
         
         for manager_key, manager in self.managers.items():
-            manager.set_config(util.merge_configs(config.get(manager_key, {}), self.global_config))
+            manager.set_config(util.attach_global_config(getattr(self.config, manager_key), self.global_config))
         msg.good("RAGManager successfully configured")
         
     def transform_query(self, query: str, history: list[ChatLog]) -> TransformationResult:

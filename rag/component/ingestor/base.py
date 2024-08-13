@@ -1,6 +1,7 @@
 from typing import Iterable
 
 from rag.type import *
+from rag.config import IngestionConfig
 
 class BaseRAGIngestor:
     def __init__(self) -> None:
@@ -10,5 +11,5 @@ class BaseRAGIngestor:
         raise NotImplementedError()
     
     @classmethod
-    def from_config(cls, config: dict) -> "BaseRAGIngestor":
+    def from_config(cls, config: IngestionConfig) -> "BaseRAGIngestor":
         raise NotImplementedError()

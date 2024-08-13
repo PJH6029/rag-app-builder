@@ -15,6 +15,7 @@ from rag.component import embeddings
 from rag.type import *
 from rag.type import Chunk, Document
 from rag import util
+from rag.config import RetrievalConfig
 
 class PineconeMultiVectorRetriever(BaseRAGRetriever):
     PARENT_CHILD_FACTOR = 3
@@ -190,12 +191,12 @@ class PineconeMultiVectorRetriever(BaseRAGRetriever):
         return chunk
         
     @classmethod
-    def from_config(cls, config: dict) -> "PineconeMultiVectorRetriever":
-        top_k = config.get("top_k", cls.DEFAULT_TOP_K)
-        parent_namespace = config.get("namespace")
-        child_namespace = config.get("sub-namespace")
+    def from_config(cls, config: RetrievalConfig) -> "PineconeMultiVectorRetriever":
+        top_k = config.top_k
+        parent_namespace = config.namespace
+        child_namespace = config.sub_namespace
         
-        embeddings_name = config.get("embeddings")
+        embeddings_name = config.embeddings
         embedding_model = embeddings.get_model(embeddings_name)
         
         vectorstore = PineconeVectorstore(

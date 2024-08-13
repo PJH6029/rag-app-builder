@@ -4,6 +4,7 @@ from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 
 from rag.type import *
+from rag.config import RetrievalConfig
 
 class BaseRAGRetriever:
     DEFAULT_TOP_K = 5
@@ -25,7 +26,7 @@ class BaseRAGRetriever:
         raise NotImplementedError()
     
     @classmethod
-    def from_config(cls, config: dict) -> "BaseRAGRetriever":
+    def from_config(cls, config: RetrievalConfig) -> "BaseRAGRetriever":
         raise NotImplementedError()
     
 
