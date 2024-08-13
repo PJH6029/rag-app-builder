@@ -4,7 +4,7 @@ import os
 from rag.component.vectorstore.PineconeVectorstore import PineconeVectorstore
 from rag.component import llm, embeddings
 
-META_KEY_PREFIX = "doc_meta___Attributes___"
+META_KEY_PREFIX = "doc_meta/Attributes/"
 
 doc_ids = [
     # "APPLE/ISO_SSD_NVME_FADU_FIRMWARE_NOMENCLATURE_1.3-DRAFT.pdf",

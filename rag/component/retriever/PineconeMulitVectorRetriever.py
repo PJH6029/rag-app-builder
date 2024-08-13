@@ -154,8 +154,8 @@ class PineconeMultiVectorRetriever(BaseRAGRetriever):
         
         # TODO seperator
         key_map = {
-            "base_doc_id": "doc_meta___Attributes___base-doc-id",
-            "category": "doc_meta___Attributes____category",
+            "base_doc_id": "doc_meta/Attributes/base-doc-id",
+            "category": "doc_meta/Attributes/_category",
         }
         
         if isinstance(filter, FilterPredicate):

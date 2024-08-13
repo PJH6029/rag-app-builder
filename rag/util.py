@@ -11,15 +11,7 @@ from rag.type import *
 
 def load_secrets():
     msg.info("Loading secrets...")
-    keys = {
-        "UPSTAGE_API_KEY",
-        "OPENAI_API_KEY",
-        "AWS_DEFAULT_REGION",
-        "AWS_ACCESS_KEY_ID",
-        "AWS_SECRET_ACCESS_KEY",
-        "S3_BUCKET_NAME",
-    }
-    for key in keys:
+    for key in st.secrets.keys():
         try:
             os.environ[key] = st.secrets[key]
         except KeyError:
@@ -29,9 +21,9 @@ def load_config(config_path = "config/config.json") -> dict:
     try:
         with open(config_path, "r") as f:
             config = json.load(f)
-        rag_config = config["rag"]
-        global_config = config["global"]
-        rag_config["global"].update(global_config)
+        rag_config = config.get("rag", {})
+        global_config = config.get("global", {})
+        rag_config.get("global", {}).update(global_config)
         return rag_config
     except Exception as e:
         msg.fail(f"Failed to load config: {e}")
@@ -47,7 +39,7 @@ def remove_none(config: dict) -> dict:
     return {k: v for k, v in config.items() if v is not None}
 
 def remove_falsy(config: dict) -> dict:
-    return {k: v for k, v in config.items() if v}
+    return {k: v for k, v in config.items() if bool(v)}
 
 def get_presigned_url(s3_uri: str) -> str:
     s3 = boto3.client("s3")
@@ -137,8 +129,7 @@ def generate_id(input_string: str) -> str:
     hex_dig = hash_object.hexdigest()
     return hex_dig
 
-# TODO separating with underscores might occur bugs if the key end with trailing underscores
-def flatten_dict(d: dict, ignore_dup: bool=False, parent_key: str = "", sep: str = "___") -> dict[str, Any]:
+def flatten_dict(d: dict, ignore_dup: bool=False, parent_key: str = "", sep: str = "/") -> dict[str, Any]:
     items = []
     for k, v in d.items():
         new_key = parent_key + sep + k if parent_key else k
@@ -148,7 +139,7 @@ def flatten_dict(d: dict, ignore_dup: bool=False, parent_key: str = "", sep: str
             items.append((new_key, v))
     return dict(items)
 
-def deflatten_dict(d: dict[str, Any], sep: str = "___") -> dict:
+def deflatten_dict(d: dict[str, Any], sep: str = "/") -> dict:
     result = {}
     for key, value in d.items():
         parts = key.split(sep)
@@ -188,6 +179,17 @@ def is_in_nested_keys(d: dict, key: str) -> bool:
             if is_in_nested_keys(v, key):
                 return True
     return False
+
+def validate_metadata(metadata: dict) -> bool:
+    # forbidden characters for metadata keys
+    forbidden_chars = set([".", "#", "[", "]", "/"])
+    for key, value in metadata.items():
+        if set(key) & forbidden_chars:
+            return False
+        if isinstance(value, dict):
+            if not validate_metadata(value):
+                return False
+    return True
 
 def get_s3_url_from_object_key(object_key: str) -> str:
     return f"s3://{os.environ['S3_BUCKET_NAME']}/{object_key}"
@@ -238,6 +240,13 @@ def upload_to_s3_with_metadata(
             msg.info(f"Writing metadata to file: {metadata_file_path}")
             with open(metadata_file_path, "w") as f:
                 f.write(json.dumps(metadata, indent=4))
+    else:
+        with open(metadata_file_path, "r") as f:
+            metadata = json.load(f)
+    
+    if not validate_metadata(metadata):
+        msg.fail(f"Invalid metadata: {metadata}")
+        return False
     
     file_object_key = os.path.join(object_location, file_name)
     metadata_object_key = os.path.join(object_location, metadata_file_name)
