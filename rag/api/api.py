@@ -85,7 +85,7 @@ def query(query: str, history: list[ChatLog]=None) -> GenerationResult:
         verification_response = rag_manager.verify_fact(generation_response, chunks)
         
         print(cb)
-    return {"transformation": queries, "retrieval": chunks, "generation": generation_response, "fact_verification": verification_response}
+    return util.remove_falsy({"transformation": queries, "retrieval": chunks, "generation": generation_response, "fact_verification": verification_response})
     
 
 def query_stream(query: str, history: list[ChatLog]=None) -> Generator[GenerationResult, None, None]:
@@ -107,7 +107,9 @@ def query_stream(query: str, history: list[ChatLog]=None) -> Generator[Generatio
             yield {"generation": response}
             generation_response += response
         
-        yield {"fact_verification": rag_manager.verify_fact(generation_response, chunks)}
+        verification = rag_manager.verify_fact(generation_response, chunks)
+        if verification is not None:
+            yield {"fact_verification": rag_manager.verify_fact(generation_response, chunks)}
         
         print(cb)
     

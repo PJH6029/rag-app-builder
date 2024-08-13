@@ -114,7 +114,7 @@ You should answer in {lang}. Keep proper nouns, or any other specialized terms a
 {query}
 </question>
 
-Answer:
+Answer (in {lang}):
 """
 generation_prompt = ChatPromptTemplate.from_template(generation_prompt_template).partial(lang="English", context_features="")
 
@@ -141,7 +141,7 @@ You should answer with the reference to the documents.
 When you reference the documents, you should provide the exact title of the document.
 Feel free to use markdown to format your answer.
 
-You should answer in {lang}.
+You should answer in {lang}. Keep proper nouns, or any other specialized terms as they are.
 
 ---------------------------------------
 <examples>
@@ -172,7 +172,7 @@ few_shot_prompt_suffix = """
 {query}
 </question>
 
-Answer:
+Answer (in {lang}):
 """
 
 def generate_few_shot_prompt_from(

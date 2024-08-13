@@ -40,19 +40,19 @@ class FactVerifierManager(BasePipelineManager):
     #     for r in chain.stream({"response": response, "context": context}):
     #         yield r
         
-    def verify(self, response: str, context: str) -> str:
+    def verify(self, response: str, context: str) -> Optional[VerificationResult]:
         if not self.enable:
             msg.warn("Fact verifier not enabled. Skipping verification.")
-            return ""
+            return None
         
         if self.verifier_name is None:
             msg.warn("Fact verifier not set. Skipping verification.")
-            return ""
+            return None
         
         verifier = llm.get_model(self.verifier_name)
         if verifier is None:
             msg.warn(f"Verifier {self.verifier_name} not found. Skipping verification.")
-            return ""
+            return None
                 
         chain = self.prompt | verifier | JsonOutputParser(pydantic_object=VerificationResult)
         return VerificationResult(**chain.invoke({"response": response, "context": context}))

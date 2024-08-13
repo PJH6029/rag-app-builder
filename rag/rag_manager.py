@@ -102,7 +102,7 @@ class RAGManager:
             history_str = util.format_history(history)
             yield from self.managers["generation"].generate_stream(query, history_str, context)
     
-    def verify_fact(self, response: str, chunks: list[Chunk]) -> VerificationResult:
+    def verify_fact(self, response: str, chunks: list[Chunk]) -> Optional[VerificationResult]:
         with time_logger(
             lambda: f"Verifying fact...",
             lambda: f"Fact verification completed"
