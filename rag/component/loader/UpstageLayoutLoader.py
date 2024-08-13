@@ -121,8 +121,6 @@ class UpstageLayoutLoader(BaseLoader):
             [elem_doc.page_content for elem_doc in elem_docs]
         )
         
-        # metadata except for page should be the same # TODO bounding_box, category(tagname), id are different
-        # metadata = elem_docs[0].metadata
         metadata = {}
         metadata["page"] = page
         

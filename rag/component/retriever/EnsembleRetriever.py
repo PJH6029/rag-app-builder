@@ -18,6 +18,7 @@ def unique_by_key(iterable: Iterable[T], key: Callable[[T], H]) -> Iterator[T]:
             seen.add(k)
             yield e
 
+# TODO abstract wrapper retriever
 class EnsembleRetriever(BaseRAGRetriever):
     def __init__(
         self, 

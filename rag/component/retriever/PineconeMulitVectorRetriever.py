@@ -181,13 +181,17 @@ class PineconeMultiVectorRetriever(BaseRAGRetriever):
             chunk_id=util.MetadataSearch.search_chunk_id(metadata),
             doc_id=util.MetadataSearch.search_doc_id(metadata),
             doc_meta=util.remove_falsy({
-                "doc_id": util.MetadataSearch.search_doc_id(metadata),
+                # "doc_id": util.MetadataSearch.search_doc_id(metadata), # TODO check if doc_id is ingested
                 "doc_name": doc_name,
                 "category": doc_meta.get("Attributes", {}).get("_category"),
                 "base_doc_id": doc_meta.get("Attributes", {}).get("base-doc-id"),
                 "version": doc_meta.get("Attributes", {}).get("version"),
             }),
-            chunk_meta={**chunk_meta, "score": metadata.get("score"), "chunk_id": util.MetadataSearch.search_chunk_id(metadata)},
+            chunk_meta={
+                **chunk_meta, 
+                "score": metadata.get("score"), 
+                # "chunk_id": util.MetadataSearch.search_chunk_id(metadata) # TODO check if chunk_id is ingested
+            },
             score=metadata.get("score"),
         )
         

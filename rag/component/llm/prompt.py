@@ -2,11 +2,11 @@ from langchain_core.prompts import ChatPromptTemplate, FewShotPromptTemplate, Pr
 from langchain_core.runnables import RunnableLambda
 
 translation_prompt_template = """
-You are an assistant for {lang}-English translation tasks.
+You are an assistant for {user_lang}-{source_lang} translation tasks.
 
-I will give you the sentence.
-If the sentence is already written in English, just copy the sentence.
-If not, please translate the sentence from {lang} to English.
+I will give you a sentence.
+If the sentence is already written in {source_lang}, just copy the sentence.
+If not, please translate the sentence from {user_lang} to {source_lang}.
 
 You should say only the translation of the sentence, and do not say any additional information.
 
@@ -16,7 +16,7 @@ You should say only the translation of the sentence, and do not say any addition
 
 Translation:
 """
-translation_prompt = ChatPromptTemplate.from_template(translation_prompt_template).partial(lang="Korean")
+translation_prompt = ChatPromptTemplate.from_template(translation_prompt_template).partial(user_lang="Korean", source_lang="English")
 
 rewrite_prompt_template = """
 You are an assistant for question-revision tasks.
@@ -57,7 +57,7 @@ Queries:
 """
 expansion_prompt = ChatPromptTemplate.from_template(expansion_prompt_template).partial(n=3, lang="English")
 
-# restrice the number of sentences to 3, to improve response latency
+# restrict the number of sentences to 3, to improve response latency
 hyde_prompt_template = """
 You are an assistant for question-answering tasks.
 Please write a passage to answer the question, considering the given chat history.
@@ -105,7 +105,7 @@ You should answer with the reference to the documents.
 When you reference the documents, you should provide the exact title of the document.
 Feel free to use markdown to format your answer.
 
-You should answer in {lang}.
+You should answer in {lang}. Keep proper nouns, or any other specialized terms as they are.
 
 <context-features>
 {context_features}
@@ -145,7 +145,7 @@ You should answer with the reference to the documents.
 When you reference the documents, you should provide the exact title of the document.
 Feel free to use markdown to format your answer.
 
-You should answer in {lang}.
+You should answer in {lang}. Keep proper nouns, or any other specialized terms as they are.
 
 <context-features>
 {context_features}
@@ -239,10 +239,21 @@ def generate_few_shot_prompt_from(
 
 
 verification_prompt_template = """
-Given context, verify the fact in the response. If the response is correct, say "Yes". If not, say "No".
+Given context, verify the fact in the response.
+You should also provide the reasoning for the verification.
+Write the response in json format, with the following keys: "verification", "reasoning".
+"verification" should be a boolean value that indicates whether the response is correct or not.
+"reasoning" should be a string that explains the reason for the verification.
+
+Write the reasoning in {lang}. Keep proper nouns, or any other specialized terms as they are.
+
 Context: {context}
 Answer: {response}
 
 Verification:
+{{
+    "verification": "<true/false>",
+    "reasoning": "<reasoning>"
+}}
 """
-verification_prompt = ChatPromptTemplate.from_template(verification_prompt_template)
+verification_prompt = ChatPromptTemplate.from_template(verification_prompt_template).partial(lang="English")

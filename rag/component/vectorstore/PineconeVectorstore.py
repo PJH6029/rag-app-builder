@@ -50,7 +50,6 @@ class PineconeVectorstore(BaseRAGVectorstore):
         
         ids = [doc.metadata["chunk_id"] for doc in docs]
         
-        # print(self.namespace, len(docs), ids)
         self.vectorstore.add_documents(
             documents=docs,
             ids=ids,
