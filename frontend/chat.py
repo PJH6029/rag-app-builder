@@ -90,6 +90,8 @@ def run():
             }
         )
         
+        
+    # TODO streaming and writing Korean too slow
 
 
 

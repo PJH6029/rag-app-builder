@@ -89,48 +89,15 @@ def _format_combined_chunks(combined_chunks: list[CombinedChunks]) -> str:
     result = ""
     for combined_chunk in combined_chunks:
         result += f"--- Document: {combined_chunk.doc_meta.get('doc_name', '')} ---\n"
-        if combined_chunk.doc_meta.get("base_doc_id"):
-            result += f"Based on: {combined_chunk.doc_meta.get('base_doc_id')}\n"
+
         result += f"Average Score: {combined_chunk.doc_mean_score}\n"
         result += f"DOC META:\n {combined_chunk.doc_meta}\n\n"
         for chunk in combined_chunk.chunks:
             result += f"{chunk.detail(doc_meta=False)}\n\n"
     return result
 
-def format_chunks_single_context(chunks: list[Chunk]) -> str:
-    combined_chunks = combine_chunks(chunks)
-    
-    return _format_combined_chunks(combined_chunks)
-
-# TODO resolve lost in middle problem. Make high score base chunks and additional chunks physically close to each other.
-def format_chunks_hierarchy_context(chunks: list[Chunk]) -> str:
-    combined_chunks = combine_chunks(chunks)
-    context = {
-        "base": "",
-        "additional": "",
-    }
-    
-    base_chunks = [chunk for chunk in combined_chunks if chunk.doc_meta.get("category") == "base"]
-    additional_chunks = [chunk for chunk in combined_chunks if chunk.doc_meta.get("category") == "additional"]
-    
-    # base
-    context["base"] = _format_combined_chunks(base_chunks)
-    
-    # additional
-    context["additional"] = _format_combined_chunks(additional_chunks)
-    
-    context_str = (
-        "<base-context>\n"
-        f"{context['base']}"
-        "</base-context>\n"
-        "<additional-context>\n"
-        f"{context['additional']}"
-        "</additional-context>"
-    )
-    return context_str
-
 def format_chunks(chunks: list[Chunk]) -> str:
-    return format_chunks_single_context(chunks)
+    return _format_combined_chunks(combine_chunks(chunks))
 
 def format_history(history: list[ChatLog]) -> str:
     return "\n".join([f"{item['role'].upper()}: {item['content']}" for item in history])

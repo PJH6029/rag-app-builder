@@ -28,17 +28,13 @@ class GeneratorManager(BasePipelineManager):
             self.prompt = prompt.generate_few_shot_prompt_from(
                 example_context, context_features, examples
             ).partial(lang=self.user_lang)
-            
-            print(self.prompt.format(**{"query": "", "context": "", "history": ""}))
-                                    
+                                                
         except Exception as e:
             msg.warn(f"Few-shot examples not found. Use default prompt.")
         
             _prompt = prompt.generation_prompt
             self.prompt = _prompt.partial(lang=self.user_lang)
             
-            print(self.prompt.format(**{"query": "", "context": "", "history": ""}))
-
         msg.info(f"Setting GENERATOR to {self.generator_name}")
 
     def generate_stream(

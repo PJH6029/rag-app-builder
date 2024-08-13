@@ -37,8 +37,7 @@ def write_source_docs(chunks: list[Chunk]):
 def write_combined_chunks(combined_chunks: list[CombinedChunks]) -> None:
     for i, combined_chunk in enumerate(combined_chunks):
         st.markdown(f"## {combined_chunk.doc_meta.get('doc_name', 'Untitled')}")
-        if combined_chunk.doc_meta.get("base_doc_id"):
-            st.markdown(f"- Based on: {combined_chunk.doc_meta.get('base_doc_id')}")
+
         st.markdown(f"- Average Score: {combined_chunk.doc_mean_score:.2f}")
         if combined_chunk.link:
             st.markdown(f"- URL: [link]({combined_chunk.link})")
