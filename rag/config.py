@@ -33,7 +33,7 @@ class RetrievalConfig(BaseModel, RAGPipelineConfig):
     weights: Optional[list[float]] = Field(None, description="Retriever weights. If provided, should be the same length as retrievers")
     namespace: str = Field("parent", description="Pinecone namespace")
     sub_namespace: str = Field("child", description="Pinecone sub-namespace")
-    embeddings: Optional[str] = Field("text-embedding-3-small", description="Embeddings name")
+    embeddings: Optional[str] = Field("text-embedding-3-small", description="Embeddings name. If retriever does not require embeddings, this field is optional")
     top_k: int = Field(6, description="Top k results")
 
 class GenerationConfig(BaseModel, RAGPipelineConfig):

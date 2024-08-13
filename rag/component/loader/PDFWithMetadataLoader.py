@@ -53,7 +53,8 @@ class PDFWithMetadataLoader(BaseLoader):
         else:
             msg.info(f"Using loader: {loader.__name__}")
             self.loader = loader(
-                **{**loader_kwargs, "file_path": file_path_for_loader}
+                **loader_kwargs,
+                file_path=file_path_for_loader
             )
         
         try:

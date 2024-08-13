@@ -8,6 +8,8 @@ from typing import Optional, Any, Iterable, Callable, Generator
 import uuid
 import json
 import time
+import re
+from markdownify import markdownify as md
 
 from rag.type import *
 from rag.config import *
@@ -344,3 +346,8 @@ def flatten_queries(queries: TransformationResult) -> list[str]:
         else:
             result.append(queries[k])
     return result
+
+def markdownify(text: str, **markdownify_options) -> str:
+    text = md(text, **markdownify_options).replace("\xa0", " ").strip()
+    cleaned_text = re.sub(r"\n\s*\n", "\n\n", text)
+    return cleaned_text

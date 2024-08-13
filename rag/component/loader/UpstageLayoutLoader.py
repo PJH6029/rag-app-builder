@@ -2,6 +2,7 @@ from typing import Iterator, Deque, Literal
 from markdownify import markdownify as md
 from wasabi import msg
 import os
+import re
 from collections import deque
 
 from langchain_core.documents import Document
@@ -56,7 +57,7 @@ class UpstageLayoutLoader(BaseLoader):
             util.save_to_local(document, f"{self.backup_dir}/html/{file_name_without_ext}/{file_name_without_ext}_{document.metadata.get('page')}.html")
         
         if self.to_markdown:
-            document.page_content = md(document.page_content)
+            document.page_content = util.markdownify(document.page_content)
             
             if self.cache_to_local:
                 msg.info(f"Saving Markdown into local: {file_name_without_ext}_{document.metadata.get('page')}.md")
