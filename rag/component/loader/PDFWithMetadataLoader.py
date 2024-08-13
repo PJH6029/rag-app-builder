@@ -13,6 +13,7 @@ from langchain_community.document_loaders import PyPDFLoader
 from rag.type import *
 from rag import util
 
+# TODO abstract wrapper loader
 class PDFWithMetadataLoader(BaseLoader):
     def __init__(
         self, 

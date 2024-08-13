@@ -18,7 +18,7 @@ class GeneratorManager(BasePipelineManager):
     def set_config(self, config: dict):
         self.generator_name = config.get("model")
         use_context_hierarchy = config.get("context-hierarchy", False)
-        self.lang = config.get("language", "English")
+        self.user_lang = config.get("lang", {}).get("user", "Korean")
         
         try:
             from config.few_shot_examples import few_shot_examples
@@ -28,16 +28,16 @@ class GeneratorManager(BasePipelineManager):
             
             self.prompt = prompt.generate_few_shot_prompt_from(
                 example_context, context_features, examples
-            ).partial(lang=self.lang)
+            ).partial(lang=self.user_lang)
                         
         except Exception as e:
             msg.warn(f"Few-shot examples not found. Use default prompt.")
         
             if use_context_hierarchy:
-                _prompt = prompt.generation_with_hierarchy_prompt.partial(lang=self.lang)
+                _prompt = prompt.generation_with_hierarchy_prompt
             else:
-                _prompt = prompt.generation_without_hierarchy_prompt.partial(lang=self.lang)
-            self.prompt = _prompt
+                _prompt = prompt.generation_without_hierarchy_prompt
+            self.prompt = _prompt.partial(lang=self.user_lang)
 
         msg.info(f"Setting GENERATOR to {self.generator_name}")
 
@@ -48,8 +48,7 @@ class GeneratorManager(BasePipelineManager):
         if chain is None:
             return
         
-        for r in chain.stream({"query": query, "context": context, "history": history}):
-            yield r
+        yield from chain.stream({"query": query, "context": context, "history": history})
     
     def generate(
         self, query: str, history: str="", context: str=""

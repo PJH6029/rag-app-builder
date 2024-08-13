@@ -38,6 +38,7 @@ class RetrieverManager(BasePipelineManager):
     def set_config(self, config: dict):
         self.embeddings_name = config.get("embeddings")
         
+        # TODO make embeddings optional
         if self.embeddings_name is not None:
             self.embeddings = embeddings.get_model(self.embeddings_name)
             msg.info(f"Setting EMBEDDINGS to {self.embeddings_name}")
@@ -55,14 +56,7 @@ class RetrieverManager(BasePipelineManager):
         self.weights = config.get("weights", [])
         self.use_context_hierarchy = config.get("context-hierarchy", False)
 
-        self.post_retrieval_config = config.get("post_retrieval", {}) # TODO
-        
-        # TODO
-        # init_params = {
-        #     "top_k": self.top_k,
-        #     "embeddings": self.embeddings,
-        # }
-        # init_params = util.remove_falsy(init_params)
+        # TODO make wrapper retriever extendable
         self.init_retriever(config)
     
         
