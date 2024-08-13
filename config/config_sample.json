@@ -1,6 +1,9 @@
 {
     "global": {
-        "language": "Korean"
+        "lang": {
+            "user": "Korean",
+            "source": "Korean"
+        }
     },
     "chat": {
 
