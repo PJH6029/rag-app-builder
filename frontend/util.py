@@ -27,34 +27,12 @@ def write_chunks(chunks: list[Chunk]):
         st.markdown(f"- chunk {i+1}:")
         st.markdown(f"```\n{chunk.text[:70]}...\n```")
 
-# TODO remove hierarchy
-def _write_source_docs_without_hierarchy(chunks: list[Chunk]):
+def write_source_docs(chunks: list[Chunk]):
     combined_chunks = combine_chunks(chunks, attach_url=True)
     
     st.divider()
     st.markdown(f"# Total {len(chunks)} chunks")
     write_combined_chunks(combined_chunks)
-
-def write_source_docs(chunks: list[Chunk]):
-    if not all([chunk.doc_meta.get("category") for chunk in chunks]):
-        msg.warn("Some chunks do not have category information, cannot display hierarchy")
-        _write_source_docs_without_hierarchy(chunks)
-        return
-    
-    combined_chunks = combine_chunks(chunks, attach_url=True)
-    
-    combined_base_chunks = [chunk for chunk in combined_chunks if chunk.doc_meta.get("category") == "base"]
-    combined_additional_chunks = [chunk for chunk in combined_chunks if chunk.doc_meta.get("category") == "additional"]
-    
-    # base
-    st.divider()
-    st.markdown(f"# Base Documents({sum([len(combined_chunk.chunks) for combined_chunk in combined_base_chunks])} chunks)")
-    write_combined_chunks(combined_base_chunks)
-    
-    # additional
-    st.divider()
-    st.markdown(f"# Additional Documents({sum([len(combined_chunk.chunks) for combined_chunk in combined_additional_chunks])} chunks)")
-    write_combined_chunks(combined_additional_chunks)
 
 def write_combined_chunks(combined_chunks: list[CombinedChunks]) -> None:
     for i, combined_chunk in enumerate(combined_chunks):

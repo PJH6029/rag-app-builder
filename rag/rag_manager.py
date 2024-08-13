@@ -80,7 +80,7 @@ class RAGManager:
             lambda: f"Querying with: '{query}' and {len(history)} history...",
             lambda: f"Query completed"
         ):
-            context = util.format_chunks(chunks, self.global_config.get("context-hierarchy", False))
+            context = util.format_chunks(chunks)
             history_str = util.format_history(history)
             generation_response = self.managers["generation"].generate(query, history_str, context)
             return generation_response
@@ -98,7 +98,7 @@ class RAGManager:
             lambda: f"Querying with: {query} and {len(history)} history...",
             lambda: f"Query completed"
         ):
-            context = util.format_chunks(chunks, self.global_config.get("context-hierarchy", False))
+            context = util.format_chunks(chunks)
             history_str = util.format_history(history)
             yield from self.managers["generation"].generate_stream(query, history_str, context)
     
@@ -107,7 +107,7 @@ class RAGManager:
             lambda: f"Verifying fact...",
             lambda: f"Fact verification completed"
         ):
-            context = util.format_chunks(chunks or [], self.global_config.get("context-hierarchy", False))
+            context = util.format_chunks(chunks or [])
             verification_response = self.managers["fact_verification"].verify(response, context)
             return verification_response
     
@@ -115,7 +115,7 @@ class RAGManager:
     #     msg.info(f"Verifying fact...")
     #     start = time.time()
         
-    #     context = util.format_chunks(chunks or [], self.global_config.get("context-hierarchy", False))
+    #     context = util.format_chunks(chunks or [])
     #     for r in self.fact_verifier_manager.verify_stream(response, context):
     #         yield r
         

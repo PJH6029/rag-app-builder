@@ -129,11 +129,8 @@ def format_chunks_hierarchy_context(chunks: list[Chunk]) -> str:
     )
     return context_str
 
-def format_chunks(chunks: list[Chunk], use_hierarchy=False) -> str:
-    if use_hierarchy:
-        return format_chunks_hierarchy_context(chunks)
-    else:
-        return format_chunks_single_context(chunks)
+def format_chunks(chunks: list[Chunk]) -> str:
+    return format_chunks_single_context(chunks)
 
 def format_history(history: list[ChatLog]) -> str:
     return "\n".join([f"{item['role'].upper()}: {item['content']}" for item in history])

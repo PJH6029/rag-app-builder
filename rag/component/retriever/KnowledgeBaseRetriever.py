@@ -67,7 +67,6 @@ class KnowledgeBaseRetriever(BaseRAGRetriever):
 
     def _arange_filter(self, filter: Filter) -> dict:
         key_map = {
-            "base_doc_id": "base-doc-id",
         }
         
         if isinstance(filter, FilterPredicate):
@@ -111,12 +110,7 @@ class KnowledgeBaseRetriever(BaseRAGRetriever):
         doc_meta = {
             "doc_id": metadata["source_metadata"]["x-amz-bedrock-kb-source-uri"],
             "doc_name": metadata["source_metadata"]["x-amz-bedrock-kb-source-uri"].split("/")[-1],
-            "category": metadata["source_metadata"]["category"],
-            "version": metadata["source_metadata"]["version"],
-            "uri": metadata["source_metadata"]["x-amz-bedrock-kb-source-uri"],
         }
-        if metadata["source_metadata"].get("base-doc-id"):
-            doc_meta["base_doc_id"] = metadata["source_metadata"]["base-doc-id"]
         
         chunk_meta = {
             "chunk_id": self._get_chunk_id(chunk_raw),

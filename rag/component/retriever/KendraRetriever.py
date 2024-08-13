@@ -70,8 +70,6 @@ class KendraRetriever(BaseRAGRetriever):
         }
         
         key_map = {
-            "category": "_category",
-            "base_doc_id": "base-doc-id",
         }
         
         if isinstance(filter, FilterPredicate):
@@ -124,12 +122,7 @@ class KendraRetriever(BaseRAGRetriever):
         doc_meta = {
             "doc_id": metadata.get("document_id", ""),
             "doc_name": metadata.get("title", ""),
-            "category": metadata.get("document_attributes", {}).get("_category", ""),
-            "version": metadata.get("document_attributes", {}).get("version", ""),
-            "uri": metadata.get("document_attributes", {}).get("_source_uri", ""),
         }
-        if metadata.get("document_attributes", {}).get("base-doc-id"):
-            doc_meta["base_doc_id"] = metadata.get("document_attributes", {}).get("base-doc-id")
         
         chunk_meta = {
             "chunk_id": metadata.get("result_id", ""),

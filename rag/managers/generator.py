@@ -36,7 +36,7 @@ class GeneratorManager(BasePipelineManager):
             if use_context_hierarchy:
                 _prompt = prompt.generation_with_hierarchy_prompt
             else:
-                _prompt = prompt.generation_without_hierarchy_prompt
+                _prompt = prompt.generation_prompt
             self.prompt = _prompt.partial(lang=self.user_lang)
 
         msg.info(f"Setting GENERATOR to {self.generator_name}")

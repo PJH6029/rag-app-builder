@@ -153,8 +153,6 @@ class PineconeMultiVectorRetriever(BaseRAGRetriever):
         }
         
         key_map = {
-            "base_doc_id": "doc_meta/Attributes/base-doc-id",
-            "category": "doc_meta/Attributes/_category",
         }
         
         if isinstance(filter, FilterPredicate):
@@ -182,9 +180,6 @@ class PineconeMultiVectorRetriever(BaseRAGRetriever):
             doc_meta=util.remove_falsy({
                 **doc_meta,
                 "doc_name": doc_name,
-                "category": doc_meta.get("Attributes", {}).get("_category"),
-                "base_doc_id": doc_meta.get("Attributes", {}).get("base-doc-id"),
-                "version": doc_meta.get("Attributes", {}).get("version"),
             }),
             chunk_meta={
                 **chunk_meta, 

@@ -78,56 +78,7 @@ Answer:
 """
 hyde_prompt = ChatPromptTemplate.from_template(hyde_prompt_template).partial(n=3, lang="English")
 
-generation_with_hierarchy_prompt_template = """
-You are an assistant for question-answering tasks.
-Use the following pieces of retrieved context to answer the question considering the chat history.
-
-I will provide you with the base context and additional context.
-Base context is the main context that you should consider first.
-It is the most base information that contains the answer.
-Additional context contains information about changes or updates to the base context, 
-which are made according to the version updates of the documents.
-
-Context can have specific features that are related to the question.
-You should consider the context features to answer the question.
-If context features are not given, you can ignore them.
-
-You should think step by step.
-You should first find the answer from the base context,
-and then consider the additional context to see if there are any updates or changes to the answer.
-If there are several changes, you should consider the additional context of the most recent version to provide the most up-to-date answer, also comparing the changes to the base context.
-
-If you don't know the answer, just say that you don't know.
-
-You can answer in descriptive form or paraphrased form if you want, and keep the answer concise.
-
-You should answer with the reference to the documents.
-When you reference the documents, you should provide the exact title of the document.
-Feel free to use markdown to format your answer.
-
-You should answer in {lang}. Keep proper nouns, or any other specialized terms as they are.
-
-<context-features>
-{context_features}
-</context-features>
-
-<context>
-{context}
-</context>
-
-<chat-history>
-{history}
-</chat-history>
-
-<question>
-{query}
-</question>
-
-Answer:
-"""
-generation_with_hierarchy_prompt = ChatPromptTemplate.from_template(generation_with_hierarchy_prompt_template).partial(lang="English", context_features="")
-
-generation_without_hierarchy_prompt_template = """
+generation_prompt_template = """
 You are an assistant for question-answering tasks.
 Use the following pieces of retrieved context to answer the question considering the chat history.
 
@@ -165,7 +116,7 @@ You should answer in {lang}. Keep proper nouns, or any other specialized terms a
 
 Answer:
 """
-generation_without_hierarchy_prompt = ChatPromptTemplate.from_template(generation_without_hierarchy_prompt_template).partial(lang="English", context_features="")
+generation_prompt = ChatPromptTemplate.from_template(generation_prompt_template).partial(lang="English", context_features="")
 
 few_shot_example_prompt = PromptTemplate(
     input_variables=["history", "query", "answer"],

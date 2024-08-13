@@ -15,7 +15,6 @@ rag_manager = None
 # TODO make config class
 DEFAULT_RAG_CONFIG = {
     "global": {
-        "context-hierarchy": False, # used in selecting retriever and generation prompts
         "lang": {
             "user": "Korean",
             "source": "Korean",

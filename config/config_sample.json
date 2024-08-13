@@ -1,7 +1,7 @@
 {
     "global": {
         "lang": {
-            "user": "Korean",
+            "user": "English",
             "source": "Korean"
         }
     },
@@ -10,7 +10,6 @@
     },
     "rag": {
         "global": {
-            "context-hierarchy": false
         },
         "ingestion": {
             "ingestor": "pinecone-multivector",
@@ -21,7 +20,7 @@
         "transformation": {
             "model": "gpt-4o-mini",
             "enable": {
-                "translation": false,
+                "translation": true,
                 "rewriting": true,
                 "expansion": false,
                 "hyde": true

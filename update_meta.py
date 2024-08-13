@@ -38,7 +38,7 @@ for doc_id in doc_ids:
         for chunk_id in chunk_ids:
             index.update(
                 id=chunk_id,
-                set_metadata={f"{META_KEY_PREFIX}_category": "additional",f"{META_KEY_PREFIX}base-doc-id": "*"},
+                # set_metadata={f"{META_KEY_PREFIX}_category": "additional",f"{META_KEY_PREFIX}base-doc-id": "*"},
                 namespace=namespace,
             )
         print(f"Updated {len(chunk_ids)} chunks in {namespace}")

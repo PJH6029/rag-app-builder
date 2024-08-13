@@ -27,7 +27,6 @@ class RetrieverManager(BasePipelineManager):
         }
 
         self.selected_retriever_names: list[str] = []
-        self.use_context_hierarchy: bool = False
         self.weights: list[float] = []
         
         self.post_retrieval_config: dict = {}
@@ -54,7 +53,6 @@ class RetrieverManager(BasePipelineManager):
             self.selected_retriever_names = [self.FALLBACK_RETRIEVER_NAME]
         
         self.weights = config.get("weights", [])
-        self.use_context_hierarchy = config.get("context-hierarchy", False)
 
         # TODO make wrapper retriever extendable
         self.init_retriever(config)
@@ -86,12 +84,7 @@ class RetrieverManager(BasePipelineManager):
     def init_retriever(self, config: dict) -> BaseRAGRetriever:
         try:
             ensemble_lambda = self._ensemble_lambda()
-            
-            msg.info(f"Use Hierarchical Retriever: {self.use_context_hierarchy}")
-            if self.use_context_hierarchy:
-                retriever = HierarchicalRetriever.from_retriever(ensemble_lambda(config))
-            else:
-                retriever = ensemble_lambda(config)
+            retriever = ensemble_lambda(config)
         except KeyError as e:
             key = e.args[0]
             msg.warn(f"Retriever {key} not found. Using fallback retriever.")
