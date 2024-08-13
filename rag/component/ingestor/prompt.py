@@ -8,6 +8,8 @@ Chunk-level metadata contains information about the chunk itself, such as the ch
 
 You don't have to include any additional information in your answer. Just summarize the chunk.
 
+Write a summary in {lang}. Keep proper nouns, requirements IDs, or any other specialized terms as they are.
+
 Chunk content:
 {text}
 
@@ -17,7 +19,7 @@ Document-level metadata:
 Chunk-level metadata:
 {chunk_meta}
 """
-summarize_prompt = ChatPromptTemplate.from_template(summarize_prompt_template)
+summarize_prompt = ChatPromptTemplate.from_template(summarize_prompt_template).partial(lang="Korean")
 
 hypothetical_queries_template = """
 For the following chunk with metadata, generate {n} hypothetical queries that a user might ask.
@@ -29,6 +31,8 @@ You don't have to include any additional information in your answer.
 Just generate hypothetical queries.
 All queries should be separated by a newline, and end with a question mark.
 
+Write a queries in {lang}. Keep proper nouns, requirements IDs, or any other specialized terms as they are.
+
 Chunk content:
 {text}
 
@@ -38,4 +42,4 @@ Document-level metadata:
 Chunk-level metadata:
 {chunk_meta}
 """
-hypothetical_queries_prompt = ChatPromptTemplate.from_template(hypothetical_queries_template)
+hypothetical_queries_prompt = ChatPromptTemplate.from_template(hypothetical_queries_template).partial(n=3, lang="Korean")

@@ -22,6 +22,7 @@ class IngestorManager(BasePipelineManager):
         
     def set_config(self, config: dict):
         self.ingestor_name = config.get("ingestor")
+        self.source_lang = config.get("lang", {}).get("source", "English")
         
         if self.ingestor_name is None:
             msg.warn("INGESTOR not configured. Setting to None.")

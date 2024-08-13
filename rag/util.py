@@ -1,11 +1,13 @@
+import contextlib
 import streamlit as st
 import os
 from wasabi import msg
 import boto3
 import hashlib
-from typing import Optional, Any, Iterable, Callable
+from typing import Optional, Any, Iterable, Callable, Generator
 import uuid
 import json
+import time
 
 from rag.type import *
 
@@ -28,6 +30,18 @@ def load_config(config_path = "config/config.json") -> dict:
     except Exception as e:
         msg.fail(f"Failed to load config: {e}")
         return {}
+
+@contextlib.contextmanager
+def time_logger(
+    start_msg_cb: Callable[..., str],
+    end_msg_cb: Callable[..., str],
+) -> Generator[None, None, None]:
+    start = time.time()
+    msg.info(start_msg_cb())
+    yield
+    end = time.time()
+    msg.good(f"{end_msg_cb()} ({end-start:.2f}s)")
+
 
 def merge_configs(*configs: dict) -> dict:
     merged_config = {}

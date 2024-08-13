@@ -16,18 +16,9 @@ from rag.managers import (
 )
 from rag.type import *
 from rag import util
+from rag.util import time_logger
 from rag.component import chunker, loader
 
-@contextlib.contextmanager
-def time_logger(
-    start_msg_cb: Callable[..., str],
-    end_msg_cb: Callable[..., str],
-) -> Generator[None, None, None]:
-    start = time.time()
-    msg.info(start_msg_cb())
-    yield
-    end = time.time()
-    msg.good(f"{end_msg_cb()} ({end-start:.2f}s)")
 
 class Managers(TypedDict):
     ingestor: IngestorManager
