@@ -2,7 +2,7 @@ from typing import Iterable, Optional
 import os
 
 from rag.type import *
-from rag.component.loader import PDFWithMetadataLoader, UpstageLayoutLoader
+from rag.component.loader import PDFWithMetadataLoader, UpstageLayoutLoader, HTMLMarkdownifyLoader
 from rag import util
 
 def lazy_load(file_path: str, cache_to_local=True) -> Iterable[Chunk]:
@@ -16,14 +16,15 @@ def lazy_load(file_path: str, cache_to_local=True) -> Iterable[Chunk]:
     """
     chunks_iter = PDFWithMetadataLoader(
         file_path,
-        loader=UpstageLayoutLoader,
-        loader_kwargs={
-            "use_ocr": True,
-            "to_markdown": True,
-            "overlap_elem_size": 0,
-            "cache_to_local": cache_to_local,
-            "backup_dir": "./backup", # TODO configurable
-        }
+        # loader=UpstageLayoutLoader,
+        loader=HTMLMarkdownifyLoader
+        # loader_kwargs={
+        #     "use_ocr": True,
+        #     "to_markdown": True,
+        #     "overlap_elem_size": 0,
+        #     "cache_to_local": cache_to_local,
+        #     "backup_dir": "./backup", # TODO configurable
+        # }
     ).lazy_load_as_chunk()
     return chunks_iter
 

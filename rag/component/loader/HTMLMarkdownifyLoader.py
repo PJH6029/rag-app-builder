@@ -15,13 +15,14 @@ def extractor(raw_html: str) -> str:
 class HTMLMarkdownifyLoader(BaseLoader):
     def __init__(
         self,
-        url: str,
+        file_path: str,
     ) -> None:
         super().__init__()
         self.recursive_url_loader = RecursiveUrlLoader(
-            url=url,
-            extractor=extractor
+            url=file_path,
+            extractor=extractor,
+            max_depth=1,
         )
-        
+
     def lazy_load(self) -> Iterator[Document]:
         return self.recursive_url_loader.lazy_load()
