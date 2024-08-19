@@ -5,4 +5,4 @@ class BasePipelineManager:
         self.config = {}
         
     def set_config(self, config: RAGPipelineConfig) -> None:
-        raise NotImplementedError()
+        pass

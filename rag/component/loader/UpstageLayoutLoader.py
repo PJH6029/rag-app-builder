@@ -1,4 +1,4 @@
-from typing import Iterator, Deque, Literal
+from typing import Iterator, Deque, Literal, Optional, Callable
 from markdownify import markdownify as md
 from wasabi import msg
 import os
@@ -6,13 +6,14 @@ import re
 from collections import deque
 
 from langchain_core.documents import Document
-from langchain_core.document_loaders import BaseLoader
 from langchain_upstage import UpstageLayoutAnalysisLoader
 from langchain_upstage.layout_analysis import OutputType, SplitType
 
+from rag.component.loader.base import BaseRAGLoader
+from rag.type import *
 from rag import util
 
-class UpstageLayoutLoader(BaseLoader):
+class UpstageLayoutLoader(BaseRAGLoader):
     def __init__(
         self,
         file_path: str,
@@ -24,7 +25,10 @@ class UpstageLayoutLoader(BaseLoader):
         cache_to_local: bool = False,
         backup_dir: str = "./layout_backup",
         source_type: Literal["path", "name"] = "path",
+        *,
+        metadata_handler: Optional[Callable[[dict], tuple[dict, dict]]] = None,
     ) -> None:
+        super().__init__(metadata_handler=metadata_handler)
         self.file_path = file_path
         self.file_name = os.path.basename(file_path)
         

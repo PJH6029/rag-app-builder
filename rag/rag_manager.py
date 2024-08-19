@@ -12,15 +12,18 @@ from rag.managers import (
     RetrieverManager,
     GeneratorManager,
     FactVerifierManager,
-    IngestorManager
+    IngestorManager,
+    LoaderManager
 )
 from rag.type import *
 from rag import util
 from rag.util import time_logger
 from rag.component import chunker, loader
 from rag.config import RAGConfig
+from rag.component.loader import BaseRAGLoader, BaseLoader
 
 class Managers(TypedDict):
+    load: LoaderManager
     ingestion: IngestorManager
     transformation: TransformerManager
     retrieval: RetrieverManager
@@ -33,6 +36,7 @@ class Managers(TypedDict):
 class RAGManager:
     def __init__(self) -> None:
         self.managers: Managers = {
+            "load": LoaderManager(),
             "ingestion": IngestorManager(),
             "transformation": TransformerManager(),
             "retrieval": RetrieverManager(),
@@ -135,20 +139,16 @@ class RAGManager:
             )
             return chunks_cnt
     
-    def ingest(self, file_path: str, batch_size: int = 20) -> int:
-        chunks_iter = loader.lazy_load(file_path)
-        return self._ingest_with_loader(chunks_iter, batch_size=batch_size)
-    
-    def aingest(self, data_url: str, batch_size: int = 20) -> int:
-        # TODO
-        return -1
-    
-    def ingest_from_backup(
-        self, backup_dir: str, object_location: Optional[str] = None, batch_size: int = 20
+    # TODO route loader. For now, specific loader should be passed
+    def ingest(
+        self, 
+        # resource_path: Any, 
+        loader: Union[BaseRAGLoader, BaseLoader],
+        batch_size: int = 20
     ) -> int:
-        chunks_iter = loader.lazy_load_from_backup(backup_dir, object_location)
+        chunks_iter = self.managers["load"].lazy_load_chunk(loader=loader)
         return self._ingest_with_loader(chunks_iter, batch_size=batch_size)
-
+    
     def upload_data(self, file_path: str, object_location: str, metadata: Optional[dict] = None) -> bool:
         """Uploads data to S3
         """

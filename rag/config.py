@@ -11,7 +11,10 @@ class GlobalConfig(BaseModel):
     
 class RAGPipelineConfig:
     global_: Optional[GlobalConfig] = Field(None, alias="global", description="Global configuration")
-    
+
+class LoadConfig(BaseModel, RAGPipelineConfig):
+    pass
+
 class IngestionConfig(BaseModel, RAGPipelineConfig):
     ingestor: str = Field("pinecone-multivector", description="Ingestor name")
     embeddings: str = Field("text-embedding-3-small", description="Embeddings name")
@@ -45,6 +48,7 @@ class FactVerificationConfig(BaseModel, RAGPipelineConfig):
 
 class RAGConfig(BaseModel):
     global_: GlobalConfig = Field(GlobalConfig(), alias="global")
+    load: LoadConfig = LoadConfig()
     ingestion: IngestionConfig = IngestionConfig()
     transformation: TransformationConfig = TransformationConfig()
     retrieval: RetrievalConfig = RetrievalConfig()

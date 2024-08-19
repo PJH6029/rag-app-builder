@@ -8,6 +8,7 @@ from rag.rag_manager import RAGManager
 from rag import util
 from rag.type import *
 from rag.config import *
+from rag.component.loader import *
 
 recent_chunks = None
 recent_translated_query = None
@@ -78,11 +79,8 @@ def query_stream(query: str, history: list[ChatLog]=None) -> Generator[Generatio
 def upload_data(file_path: str, object_location: str, metadata: Optional[dict] = None) -> bool:
     return rag_manager.upload_data(file_path, object_location, metadata)
 
-def ingest_data(file_path: str) -> int:
-    return rag_manager.ingest(file_path)
+def ingest_data(loader: Union[BaseRAGLoader, BaseLoader]) -> int:
+    return rag_manager.ingest(loader=loader)
 
-async def aingest_data(s3_url: str) -> int:
-    return await rag_manager.aingest(s3_url)
-
-def ingest_from_backup(backup_dir: str, object_location: str) -> int:
-    return rag_manager.ingest_from_backup(backup_dir, object_location)
+# def ingest_from_backup(backup_dir: str, object_location: str) -> int:
+#     return rag_manager.ingest_from_backup(backup_dir, object_location)

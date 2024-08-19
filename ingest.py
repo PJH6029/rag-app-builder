@@ -1,6 +1,6 @@
 import os
 
-from rag.api import upload_data, ingest_data, ingest_from_backup
+from rag.api import upload_data, ingest_data
 from rag.component.ingestor.PineconeMultiVectorIngestor import PineconeMultiVectorIngestor
 
 source_doc_dir = "source_documents"

@@ -134,27 +134,60 @@ def deflatten_dict(d: dict[str, Any], sep: str = "/") -> dict:
         d_ptr[parts[-1]] = value
     return result
 
-# TODO ensure doc_id is in metadata
-def doc_to_chunk(document: Document) -> Chunk:
+def _default_metadata_handler(metadata: dict) -> tuple[dict, dict]:
+    doc_id = MetadataSearch.search_doc_id(metadata)
+    doc_source = MetadataSearch.search_source(metadata)
+    if doc_id is None and doc_source is None:
+        raise ValueError("doc_id & doc_source not found in metadata")
+
+    # if one of them is None, use the other
+    if doc_id is None:
+        doc_id = doc_source
+    elif doc_source is None:
+        doc_source = doc_id
+    
+    page = metadata.pop("page", -1)
+    doc_meta = {
+        **metadata,
+        "doc_id": doc_id,
+        "source": doc_source,
+    }
+    chunk_meta = {
+        "page": page,
+    }
+    return doc_meta, chunk_meta
+
+def doc_to_chunk(
+    document: Document,
+    *,
+    metadata_handler: Optional[Callable[[dict], tuple[dict, dict]]] = None,
+) -> Chunk:
+    if metadata_handler is None:
+        final_metadata_handler = _default_metadata_handler
+    else:
+        # chaining metadata handler
+        def final_metadata_handler(metadata: dict) -> tuple[dict, dict]:
+            doc_meta, chunk_meta = metadata_handler(metadata)
+            default_doc_meta, default_chunk_meta = _default_metadata_handler(metadata)
+            doc_meta = {**default_doc_meta, **doc_meta}
+            chunk_meta = {**default_chunk_meta, **chunk_meta}
+            return doc_meta, chunk_meta
     try:
-        chunk_id = str(uuid.uuid4())
-        page = document.metadata.pop("page", -1)
-        
-        chunk = Chunk(
-            text=document.page_content,
-            doc_id=MetadataSearch.search_doc_id(document.metadata),
-            chunk_id=chunk_id,
-            doc_meta={
-                **document.metadata,
-                "source": MetadataSearch.search_source(document.metadata),
-            },
-            chunk_meta={
-                "page": page,
-            }
-        )
-        return chunk
-    except KeyError as e:
-        raise ValueError(f"doc_id not found in document metadata: {e}")
+        doc_meta, chunk_meta = final_metadata_handler(document.metadata)
+    except Exception as e:
+        msg.warn(f"Failed to handle metadata: {e}. Using default metadata handler.")
+        doc_meta, chunk_meta = _default_metadata_handler(document.metadata)
+
+    chunk_id = str(uuid.uuid4())
+    chunk = Chunk(
+        text=document.page_content,
+        doc_id=doc_meta["doc_id"],
+        chunk_id=chunk_id,
+        doc_meta=remove_falsy(doc_meta),
+        chunk_meta=remove_falsy(chunk_meta)
+    )
+    return chunk
+
 
 def is_in_nested_keys(d: dict, key: str) -> bool:
     if key in d:
